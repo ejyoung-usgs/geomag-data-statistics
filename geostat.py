@@ -1,6 +1,7 @@
 import urllib.request
 import argparse
 import datetime
+import re
 
 def setupEnv():
     argParser = argparse.ArgumentParser(description = "Gather information from Geomag HTTP site")
@@ -28,6 +29,22 @@ def start_http_session( url ):
     
 runtimeConfigs = setupEnv()
 requestString = "{url}/{observatory}/{type}/{file}"
+today_date = datetime.datetime.utcnow()
+today_date.resolution( datetime.timedelta(minutes=1) )
+## Clear seconds ##
+t_delta = datetime.timedelta( seconds = today_date.second, microseconds= today_date.microsecond )
+today_date = today_date - t_delta
+
+t_delta_1_min = datetime.timedelta(minutes=1)
+t_delta_5_min = datetime.timedelta(minutes=5)
+t_delta_10_min = datetime.timedelta(minutes=10)
+t_delta_1_hour = datetime.timedelta( hours = 1 )
+
+print( today_date )
+print( today_date - t_delta_1_min )
+print( today_date - t_delta_5_min )
+print( today_date - t_delta_10_min )
+print( today_date - t_delta_1_hour )
 
 #Make dynamic later
 start_http_session( requestString.format( url = runtimeConfigs["url"], observatory = runtimeConfigs["observatory"], type = "OneMinute", file="frd20130402vmin.min") )
