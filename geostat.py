@@ -20,12 +20,11 @@ def start_http_session( url ):
     magdata = open("magdata.sec", "w")
     #print ( request.read() )
     magfile = request.read().decode("utf-8")
-    magfile.splitlines()
+    magfile = magfile.splitlines()
     for line in magfile:
         line = line.strip()
         magdata.write(line+"\n")
-    #magdile = request.split()
-    #SSfor x in magfile
+
     
 def form_file_name(obs_str, date):
     file_template = "{obs}{year:4d}{month:02d}{day:02d}vmin.min"
@@ -55,6 +54,6 @@ print( today_date - t_delta_10_min )
 print( today_date - t_delta_1_hour )
 
 #Make dynamic later
-start_http_session( requestString.format( url = runtimeConfigs["url"], observatory = runtimeConfigs["observatory"], type = "OneMinute", file="frd20130402vmin.min") )
+start_http_session( requestString.format( url = runtimeConfigs["url"], observatory = runtimeConfigs["observatory"], type = "OneMinute", file= form_file_name("frd", today_date) ) )
 
 print( form_file_name("FRD", today_date) )
