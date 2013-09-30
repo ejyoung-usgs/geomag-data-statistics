@@ -3,6 +3,7 @@ import argparse
 import datetime
 import re
 import sqlite3
+import time
 
 def setupEnv():
     argParser = argparse.ArgumentParser(description = "Gather information from Geomag HTTP site")
@@ -38,17 +39,10 @@ def start_http_session( url ):
             print ("regex not matched for", today_date, regex_string.format(year = today_date.year, month = today_date.month, day = today_date.day, hour = today_date.hour, minute = today_date.minute, second =0) )
         else:
             print("Found", result.group())
-
-    #magdata = open("magdata.sec", "w")
-    #print ( request.read() )
-    #magfile = request.read().decode("utf-8")
-    #magfile = magfile.splitlines()
-    #for line in magfile:
-        #line = line.strip()
-        
-        #### Replace with find data point code
-        #magdata.write(line+"\n")
-
+            if "99999.00" not in result.group():
+                print("data is valid")
+            else:
+                print("data is not valid")
     
 def form_file_name(obs_str, date):
     file_template = "{obs}{year:4d}{month:02d}{day:02d}vmin.min"
@@ -63,6 +57,8 @@ requestString = "{url}/{observatory}/{type}/{file}"
 today_date = datetime.datetime.utcnow()
 
 #Make dynamic later
-start_http_session( requestString.format( url = runtimeConfigs["url"], observatory = runtimeConfigs["observatory"], type = "OneMinute", file= form_file_name("frd", today_date) ) )
+while True:
+    start_http_session( requestString.format( url = runtimeConfigs["url"], observatory = runtimeConfigs["observatory"], type = "OneMinute", file= form_file_name("frd", today_date) ) )
+    time.sleep(60)
 
 print( form_file_name("FRD", today_date) )
