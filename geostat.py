@@ -29,6 +29,7 @@ def start_http_session( url ):
 
     request = urllib.request.urlopen(url)
     regex_string = "{year}-{month:02d}-{day:02d} {hour:02d}:{minute:02d}:{second:02d}.*"
+    dataset=[]
     geo_data = request.read().decode("utf-8")
 
     for dtime in deltas:
@@ -41,8 +42,11 @@ def start_http_session( url ):
             print("Found", result.group())
             if "99999.00" not in result.group():
                 print("data is valid")
+                dataset.append(True)
             else:
                 print("data is not valid")
+                dataset.append(False)
+    return dataset
     
 def form_file_name(obs_str, date):
     file_template = "{obs}{year:4d}{month:02d}{day:02d}vmin.min"
@@ -55,10 +59,18 @@ def form_file_name(obs_str, date):
 runtimeConfigs = setupEnv()
 requestString = "{url}/{observatory}/{type}/{file}"
 today_date = datetime.datetime.utcnow()
+data_sets=[]
 
 #Make dynamic later
 while True:
-    start_http_session( requestString.format( url = runtimeConfigs["url"], observatory = runtimeConfigs["observatory"], type = "OneMinute", file= form_file_name("frd", today_date) ) )
+    data_stats = start_http_session( requestString.format( url = runtimeConfigs["url"], observatory = runtimeConfigs["observatory"], type = "OneMinute", file= form_file_name("frd", today_date) ) )
+    if len(data_sets ) > 5:
+        data_sets = data_sets[1:]
+        data_sets.append(data_stats)
+        
+        
+        
+       # for d in data_sets
     time.sleep(60)
 
 print( form_file_name("FRD", today_date) )
