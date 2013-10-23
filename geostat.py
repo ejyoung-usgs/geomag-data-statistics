@@ -5,6 +5,8 @@ import re
 import sqlite3
 import time
 
+import geosqliteatapter
+
 def setupEnv():
     argParser = argparse.ArgumentParser(description = "Gather information from Geomag HTTP site")
     argParser.add_argument("observatory", help = "Observatory to gather data on")
@@ -60,6 +62,9 @@ runtimeConfigs = setupEnv()
 requestString = "{url}/{observatory}/{type}/{file}"
 today_date = datetime.datetime.utcnow()
 data_sets=[]
+
+#### Code to test the database ####
+dbAdapter = geosqliteatapter.SqliteAdapter("testdb.db")
 
 #Make dynamic later
 while True:
