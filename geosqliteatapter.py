@@ -9,6 +9,7 @@ class SqliteAdapter:
         cursor = self.__db_connection.cursor()
         cursor.execute("CREATE TABLE IF NOT EXISTS GeoStats ( _id INTEGER AUTO_INCREMENT , date TEXT, h INTEGER, d INTEGER, z INTEGER, f INTEGER, observatory INTEGER ,PRIMARY KEY(_id), FOREIGN KEY(observatory) REFERENCES Locations(_id) )")
         cursor.execute("CREATE TABLE IF NOT EXISTS Locations( _id INTEGER, observatory_name TEXT, PRIMARY KEY(_id) )" )
+        cursor.execute("CREATE TABLE IF NOT EXISTS DataPoints ( _id INTEGER, num_points INTEGER, observatory INTEGER, PRIMARY KEY(_id), FOREIGN KEY(observatory) REFERENCES Locations(_id) )")
         self.__db_connection.commit();
         cursor.execute("SELECT _id FROM Locations")
         count = len( cursor.fetchall() )
