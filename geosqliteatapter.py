@@ -18,7 +18,6 @@ class SqliteAdapter:
         #### Setup Observatory locations ####
         cursor.execute("SELECT _id FROM Locations")
         count = len( cursor.fetchall() )
-        print(count)
         if count == 0:
             self.insert_observatory("FRD")
             self.insert_observatory("BOU")
