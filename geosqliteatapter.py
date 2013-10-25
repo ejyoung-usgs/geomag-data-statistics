@@ -22,7 +22,6 @@ class SqliteAdapter:
             self.insert_observatory("FRD")
             self.insert_observatory("BOU")
             self.insert_observatory("BDT")
-            self.__db_connection.commit()
 
     def insert_observatory(self, location):
         cursor = self.__db_connection.cursor()
