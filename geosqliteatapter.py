@@ -23,6 +23,16 @@ class SqliteAdapter:
             self.insert_observatory("BOU")
             self.insert_observatory("BDT")
 
+        #### Setup available delays ####
+        cursor.execute("SELECT _id FROM Delays")
+        count = len( cursor.fetchall() )
+        if count == 0:
+            self.insert_delay(0)
+            self.insert_delay(60)
+            self.insert_delay(300)
+            self.insert_delay(600)
+            self.insert_delay(900)
+
     def insert_observatory(self, location):
         cursor = self.__db_connection.cursor()
         cursor.execute("INSERT INTO Locations (observatory_name) VALUES(?)", (location,) )
@@ -30,5 +40,5 @@ class SqliteAdapter:
 
     def insert_delay(self, delay):
         cursor = self.__db_connection.cursor()
-        cursor.execute("INSERT INSERT Delays (delay) VALUES(?)", (delay,) )
+        cursor.execute("INSERT INTO Delays (delay) VALUES(?)", (delay,) )
         self.__db_connection.commit()
