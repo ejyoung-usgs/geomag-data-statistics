@@ -41,7 +41,8 @@ class SqliteAdapter:
             for delay in self.__delays:
                 delay_id = self.find_delay_id_by_value(delay)
                 cursor.execute(check_stat_query, (location_id, delay_id,) )
-                if len(cursor.fetchall() ) == 0 :
+                results = cursor.fetchall()
+                if len(results ) == 0 :
                     self.__insert_stat(location_id, delay_id)
 
     def insert_observatory(self, location):
@@ -62,6 +63,7 @@ class SqliteAdapter:
         cursor = self.__db_connection.cursor()
         query = "insert into GeoStats(observatory_fk, delay_fk, h, d, z, f, point_count) values (?, ? , 0, 0, 0, 0, 0)"
         cursor.execute( query, (location, delay,) )
+        self.__db_connection.commit()
 
     def find_location_id_by_name(self, name):
         cursor = self.__db_connection.cursor()
