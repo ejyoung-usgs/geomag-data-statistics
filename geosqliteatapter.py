@@ -75,3 +75,9 @@ class SqliteAdapter:
         query = "select _id from Delays where delay=?"
         cursor.execute(query, (delay,) )
         return cursor.fetchall()[0][0]
+
+    def update_geostat(self, id, h, d, z, f, point_count):
+        cursor = self.__db_connection.cursor()
+        query = "update GeoStats set h=?, d=?, z=?, f=?, point_count=? where _id=?"
+        cursor.execute(query, (h, d, z, f, point_count, id,) )
+        self.__db_connection.commit()
