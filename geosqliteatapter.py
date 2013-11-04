@@ -57,7 +57,6 @@ class SqliteAdapter:
 
     def select_stat(self, location, delay):
         cursor = self.__db_connection.cursor()
-        print("delay = ", delay, "Location = ", location)
         result = cursor.execute("SELECT h, d, z, f, point_count FROM GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id where Locations._id = ? and Delays._id = ?", (location, delay,))
         data = result.fetchone()
         point_data = dict()
