@@ -64,8 +64,10 @@ def start_http_session( url ):
                     valid = 100
                 new_average = (old_average * point_count + valid) / ( point_count + 1)
                 #### Strip fraction off ####
-                new_average = str(new_average).split(".")[0]
-                print(new_average)
+                db_data[key] = str(new_average).split(".")[0]
+            db_data["point_count"] = db_data["point_count"] + 1
+            update_record(db_data)
+            print("record now holds", get_record(observatory_name, delay_value) )
     
 def form_file_name(obs_str, date):
     file_template = "{obs}{year:4d}{month:02d}{day:02d}vmin.min"
@@ -84,6 +86,10 @@ def get_record(observatory, delay):
     observatory_key = dbAdapter.find_location_id_by_name(observatory)
     delay_key = dbAdapter.find_delay_id_by_value(delay)
     return dbAdapter.select_stat(observatory_key, delay_key)
+
+def update_record(data_map):
+    dbAdapter = runtimeConfigs["db"]
+    dbAdapter.update_geostat(data_map["id"], data_map["h"], data_map["d"], data_map["z"], data_map["f"], data_map["point_count"])
     
 runtimeConfigs = setupEnv()
 requestString = "{url}/{observatory}/{type}/{file}"
