@@ -56,15 +56,18 @@ class SqliteAdapter:
         self.__db_connection.commit()
 
     def select_stat(self, location, delay):
+        self.__db_connection.row_factory = sqlite3.Row
         cursor = self.__db_connection.cursor()
-        result = cursor.execute("SELECT h, d, z, f, point_count FROM GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id where Locations._id = ? and Delays._id = ?", (location, delay,))
+        result = cursor.execute("SELECT GeoStats._id, h, d, z, f, point_count FROM GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id where Locations._id = ? and Delays._id = ?", (location, delay,))
         data = result.fetchone()
+        data.keys()
         point_data = dict()
-        point_data["h"] = data[0]
-        point_data["d"] = data[1]
-        point_data["z"] = data[2]
-        point_data["f"] = data[3]
-        point_data["point_count"] = data[4]
+        point_data["id"] = data["_id"]
+        point_data["h"] = data["h"]
+        point_data["d"] = data["d"]
+        point_data["z"] = data["z"]
+        point_data["f"] = data["f"]
+        point_data["point_count"] = data["point_count"]
         return point_data
 
     def __insert_stat(self, location, delay):
