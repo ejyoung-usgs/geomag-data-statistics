@@ -92,3 +92,21 @@ class SqliteAdapter:
         query = "update GeoStats set h=?, d=?, z=?, f=?, point_count=? where _id=?"
         cursor.execute(query, (h, d, z, f, point_count, id,) )
         self.__db_connection.commit()
+
+    def get_all_stats(self):
+        self.__db_connection.row_factory = sqlite3.Row
+        cursor = self.__db_connection.cursor()
+        query = "select observatory_name, delay, h, d, z, f from GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id"
+        result_set = cursor.execute(query)
+        return_array = []
+        rows = result_set.fetchall()
+        for row in rows:
+            row_data = dict()
+            row_data["obs"] = row["observatory_name"]
+            row_data["delay"] = row["delay"]
+            row_data["h"] = row["h"]
+            row_data["d"] = row["d"]
+            row_data["z"] = row["z"]
+            row_data["f"] = row["f"]
+            return_array.append(row_data)
+        return return_array
