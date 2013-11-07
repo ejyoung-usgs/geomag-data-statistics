@@ -18,6 +18,7 @@ def setupEnv():
     configs["observatory"] = args.observatory
     configs["url"] = "http://magweb.cr.usgs.gov/data/magnetometer"
     configs["db"] = geosqliteatapter.SqliteAdapter("testdb.db")
+    configs["log_file"] = "log.txt"
     return configs
     
 def start_http_session( url ):
@@ -90,6 +91,24 @@ def get_record(observatory, delay):
 def update_record(data_map):
     dbAdapter = runtimeConfigs["db"]
     dbAdapter.update_geostat(data_map["id"], data_map["h"], data_map["d"], data_map["z"], data_map["f"], data_map["point_count"])
+
+def printTable():
+    log = open(runtimeConfigs["log_file"], "w")
+    log.close()
+    log = open(runtimeConfigs["log_file"], "a")
+    dbAdapter = runtimeConfigs["db"]
+    #### TODO Parse data into some logical table structure ####
+    all_stats = dbAdapter.get_all_stats()
+    print_str = "|| {:^14} || {:^8} || {:^5} || {:^5} || {:^5} || {:^5} ||"
+    print(print_str.format("Observatory", "Delay", "h", "d", "z", "f"))
+    log.write(print_str.format("Observatory", "Delay", "h", "d", "z", "f") )
+    log.write("\n")
+    for item in all_stats:
+        print (print_str.format(item["obs"], item["delay"], item["h"], item["d"], item["z"], item["f"]))
+        log.write(print_str.format(item["obs"], item["delay"], item["h"], item["d"], item["z"], item["f"]))
+        log.write("\n")
+    log.close()
+
     
 runtimeConfigs = setupEnv()
 requestString = "{url}/{observatory}/{type}/{file}"
@@ -99,8 +118,7 @@ data_sets=[]
 #Make dynamic later
 while True:
     start_http_session( requestString.format( url = runtimeConfigs["url"], observatory = runtimeConfigs["observatory"], type = "OneMinute", file= form_file_name("frd", today_date) ) )        
-        
-       # for d in data_sets
+    printTable()
     time.sleep(60)
 
 print( form_file_name("FRD", today_date) )
