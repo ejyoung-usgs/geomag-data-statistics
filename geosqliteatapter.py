@@ -2,10 +2,10 @@ import sqlite3
 
 class SqliteAdapter:
 
-    def __init__(self, database):
+    def __init__(self, database, observatories, delays):
         self.__db_connection = sqlite3.connect(database)
-        self.__delays = [0, 60, 300, 600, 900]
-        self.__locations = ["FRD", "BOU", "BDT"]
+        self.__delays = delays
+        self.__locations = observatories
         self.init_database()
 
     def __del__(self):
@@ -17,29 +17,22 @@ class SqliteAdapter:
         cursor.execute("CREATE TABLE IF NOT EXISTS Locations( _id INTEGER, observatory_name TEXT, PRIMARY KEY(_id) )" )
         cursor.execute("CREATE TABLE IF NOT EXISTS Delays ( _id INTEGER, delay INTEGER, PRIMARY KEY(_id) ) ") #### Delay is in seconds ####
         self.__db_connection.commit();
-        #### Setup Observatory locations ####
-        cursor.execute("SELECT _id FROM Locations")
-        count = len( cursor.fetchall() )
-        if count == 0:
-            self.insert_observatory("FRD")
-            self.insert_observatory("BOU")
-            self.insert_observatory("BDT")
 
         #### Setup available delays ####
-        cursor.execute("SELECT _id FROM Delays")
-        count = len( cursor.fetchall() )
-        if count == 0:
-            self.insert_delay(0)
-            self.insert_delay(60)
-            self.insert_delay(300)
-            self.insert_delay(600)
-            self.insert_delay(900)
+        for delay in self.__delays:
+            if self.find_delay_id_by_value(delay.seconds) == None:
+                self.insert_delay(delay.seconds)
 
+        #### Setup Observatory locations ####
         for id in self.__locations:
+
+            if self.find_location_id_by_name(id) == None:
+                self.insert_observatory(id)
+
             check_stat_query = "select * from GeoStats where observatory_fk=? and delay_fk=?"
             location_id = self.find_location_id_by_name(id)
             for delay in self.__delays:
-                delay_id = self.find_delay_id_by_value(delay)
+                delay_id = self.find_delay_id_by_value(delay.seconds)
                 cursor.execute(check_stat_query, (location_id, delay_id,) )
                 results = cursor.fetchall()
                 if len(results ) == 0 :
@@ -80,12 +73,18 @@ class SqliteAdapter:
         cursor = self.__db_connection.cursor()
         query = "select _id from Locations where observatory_name = ?"
         cursor.execute(query, (name,))
-        return cursor.fetchall()[0][0]
+        location_return = cursor.fetchall()
+        if len(location_return) == 0:
+            return None
+        return location_return[0][0]
     def find_delay_id_by_value(self, delay):
         cursor = self.__db_connection.cursor()
         query = "select _id from Delays where delay=?"
         cursor.execute(query, (delay,) )
-        return cursor.fetchall()[0][0]
+        delay_return = cursor.fetchall()
+        if len(delay_return) == 0:
+            return None
+        return delay_return[0][0]
 
     def update_geostat(self, id, h, d, z, f, point_count):
         cursor = self.__db_connection.cursor()
