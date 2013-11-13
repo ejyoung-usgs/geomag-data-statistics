@@ -96,7 +96,7 @@ class SqliteAdapter:
     def get_all_stats(self):
         self.__db_connection.row_factory = sqlite3.Row
         cursor = self.__db_connection.cursor()
-        query = "select observatory_name, delay, h, d, z, f from GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id"
+        query = "select observatory_name, delay, h, d, z, f from GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id order by delay"
         result_set = cursor.execute(query)
         return_array = []
         rows = result_set.fetchall()
