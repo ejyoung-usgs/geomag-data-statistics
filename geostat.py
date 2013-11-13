@@ -45,7 +45,6 @@ def start_http_session( url ):
         if(result is None):
             print ("regex not matched for", today_date, regex_string.format(year = today_date.year, month = today_date.month, day = today_date.day, hour = today_date.hour, minute = today_date.minute, second =0) )
         else:
-            print("Found", result.group())
             data_result = re.search(data_regex, result.group() )
             data_points = data_result.group().split()
             data_map = dict()
@@ -68,7 +67,6 @@ def start_http_session( url ):
                 db_data[key] = str(new_average).split(".")[0]
             db_data["point_count"] = db_data["point_count"] + 1
             update_record(db_data)
-            print("record now holds", get_record(observatory_name, delay_value) )
     
 def form_file_name(obs_str, date):
     file_template = "{obs}{year:4d}{month:02d}{day:02d}vmin.min"
@@ -100,7 +98,7 @@ def printTable():
     #### TODO Parse data into some logical table structure ####
     all_stats = dbAdapter.get_all_stats()
     print_str = "|| {:^14} || {:^8} || {:^5} || {:^5} || {:^5} || {:^5} ||"
-    print(print_str.format("Observatory", "Delay", "h", "d", "z", "f"))
+    print(print_str.format("Observatory", "Delay(s)", "H", "D", "Z", "F"))
     log.write(print_str.format("Observatory", "Delay", "h", "d", "z", "f") )
     log.write("\n")
     for item in all_stats:
@@ -108,6 +106,7 @@ def printTable():
         log.write(print_str.format(item["obs"], item["delay"], item["h"], item["d"], item["z"], item["f"]))
         log.write("\n")
     log.close()
+    print("\n\n")
 
     
 runtimeConfigs = setupEnv()
@@ -121,10 +120,3 @@ while True:
     printTable()
     time.sleep(60)
 
-print( form_file_name("FRD", today_date) )
-
-
-
-
-############# SHAME #####################
-#### Adjusted sum is ( average * data_points + new_value ) / ( n + 1 )
