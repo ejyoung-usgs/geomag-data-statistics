@@ -17,7 +17,7 @@ def setupEnv():
     ## Setup all runtime configurations here ##
     configs["observatory"] = args.observatory
     configs["url"] = "http://magweb.cr.usgs.gov/data/magnetometer"
-    configs["db"] = geosqliteatapter.SqliteAdapter("testdb.db")
+    configs["db"] = geosqliteatapter.SqliteAdapter("geostat.db")
     configs["log_file"] = "log.txt"
     return configs
     
