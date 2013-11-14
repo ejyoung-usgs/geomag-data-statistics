@@ -10,7 +10,7 @@ def setupEnv():
     configs = dict()
     
     ## Setup all runtime configurations here ##
-    configs["observatories"] = ["BOU", "BDT", "BRT", "BRW", "BSL", "CMO", "DED", "FRD", "FRN", "GUA", "HON", "KGI", "NEW", "SHU", "SIT", "SJG", "TUC"]
+    configs["observatories"] = ["BOU", "BDT", "BRW", "BSL", "CMO", "DED", "FRD", "FRN", "GUA", "HON", "NEW", "SHU", "SIT", "SJG", "TUC"]
     configs["delays"] = [datetime.timedelta(minutes=1),datetime.timedelta(minutes=5),datetime.timedelta(minutes=10),datetime.timedelta(minutes=15)]
     configs["url"] = "http://magweb.cr.usgs.gov/data/magnetometer"
     configs["db"] = geosqliteatapter.SqliteAdapter("geostat.db", configs["observatories"], configs["delays"])
