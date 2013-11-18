@@ -92,23 +92,25 @@ def printTable():
     log = open(runtimeConfigs["log_file"], "a")
     dbAdapter = runtimeConfigs["db"]
     #### TODO Parse data into some logical table structure ####
-    all_stats = dbAdapter.get_all_stats()
-    print_str = "|| {:^14} || {:^8} || {:>5}% || {:>5}% || {:>5}% || {:>5}% ||"
-    print(print_str.format("Observatory", "Delay(s)", "H", "D", "Z", "F"))
-    log.write(print_str.format("Observatory", "Delay", "h", "d", "z", "f") )
-    log.write("\n")
-    for item in all_stats:
-        print (print_str.format(item["obs"], item["delay"], item["h"], item["d"], item["z"], item["f"]))
-        log.write(print_str.format(item["obs"], item["delay"], item["h"], item["d"], item["z"], item["f"]))
+    print_str = "|| {:^14} || {:>5}% || {:>5}% || {:>5}% || {:>5}% ||"
+    title_str = "|| {:^14} || {:>5}  || {:>5}  || {:>5}  || {:>5}  || Delay: {:2.0f} minutes"
+
+    for d in runtimeConfigs["delays"]:
+        all_stats = dbAdapter.get_stats_for_delay(d.seconds)
+
+        print(title_str.format("Observatory", "H", "D", "Z", "F", d.seconds/60))
+        log.write(title_str.format("Observatory", "H", "D", "Z", "F", d.seconds/60) )
         log.write("\n")
+        for item in all_stats:
+            print (print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
+            log.write(print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
+            log.write("\n")
     log.close()
     print("\n\n")
 
     
 runtimeConfigs = setupEnv()
-data_sets=[]
 
-#Make dynamic later
 while True:
     for obs in runtimeConfigs["observatories"]:
         start_http_session( obs )
