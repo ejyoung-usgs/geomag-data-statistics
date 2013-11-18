@@ -95,7 +95,7 @@ def printTable():
     dbAdapter = runtimeConfigs["db"]
     #### TODO Parse data into some logical table structure ####
     print_str = "|| {:^14} || {:>5}% || {:>5}% || {:>5}% || {:>5}% ||"
-    title_str = "|| {:^14} || {:>5}  || {:>5}  || {:>5}  || {:>5}  || Delay: {:2.0f} minutes"
+    title_str = "\n|| {:^14} || {:>5}  || {:>5}  || {:>5}  || {:>5}  || Delay: {:2.0f} minutes"
 
     for d in runtimeConfigs["delays"]:
         all_stats = dbAdapter.get_stats_for_delay(d.seconds)
