@@ -15,6 +15,7 @@ def setupEnv():
     configs["url"] = "http://magweb.cr.usgs.gov/data/magnetometer"
     configs["db"] = geosqliteatapter.SqliteAdapter("geostat.db", configs["observatories"], configs["delays"])
     configs["log_file"] = "log.txt"
+    configs["program_start"] = datetime.datetime.now()
     return configs
     
 def start_http_session( observatory ):
@@ -87,6 +88,7 @@ def update_record(data_map):
     dbAdapter.update_geostat(data_map["id"], data_map["h"], data_map["d"], data_map["z"], data_map["f"], data_map["point_count"])
 
 def printTable():
+    print("Uptime", datetime.datetime.now() - runtimeConfigs["program_start"])
     log = open(runtimeConfigs["log_file"], "w")
     log.close()
     log = open(runtimeConfigs["log_file"], "a")
