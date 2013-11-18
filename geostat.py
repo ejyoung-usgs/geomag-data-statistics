@@ -93,7 +93,7 @@ def printTable():
     dbAdapter = runtimeConfigs["db"]
     #### TODO Parse data into some logical table structure ####
     all_stats = dbAdapter.get_all_stats()
-    print_str = "|| {:^14} || {:^8} || {:^5} || {:^5} || {:^5} || {:^5} ||"
+    print_str = "|| {:^14} || {:^8} || {:>5}% || {:>5}% || {:>5}% || {:>5}% ||"
     print(print_str.format("Observatory", "Delay(s)", "H", "D", "Z", "F"))
     log.write(print_str.format("Observatory", "Delay", "h", "d", "z", "f") )
     log.write("\n")
