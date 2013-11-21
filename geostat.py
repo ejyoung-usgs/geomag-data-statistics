@@ -58,8 +58,7 @@ def start_http_session( observatory ):
                     if value != "99999.00":
                         valid = 100
                     new_average = (old_average * point_count + valid) / ( point_count + 1)
-                    #### Strip fraction off ####
-                    db_data[key] = str(new_average).split(".")[0]
+                    db_data[key] = new_average
                 db_data["point_count"] = db_data["point_count"] + 1
                 update_record(db_data)
     except urllib.error.HTTPError:
@@ -94,7 +93,7 @@ def printTable():
     log = open(runtimeConfigs["log_file"], "a")
     dbAdapter = runtimeConfigs["db"]
     #### TODO Parse data into some logical table structure ####
-    print_str = "|| {:^14} || {:>5}% || {:>5}% || {:>5}% || {:>5}% ||"
+    print_str = "|| {:^14} || {:>5.2f}% || {:>5.2f}% || {:>5.2f}% || {:>5.2f}% ||"
     title_str = "\n|| {:^14} || {:>5}  || {:>5}  || {:>5}  || {:>5}  || Delay: {:2.0f} minutes"
 
     for d in runtimeConfigs["delays"]:
