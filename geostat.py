@@ -93,8 +93,8 @@ def printTable():
     log = open(runtimeConfigs["log_file"], "a")
     dbAdapter = runtimeConfigs["db"]
     #### TODO Parse data into some logical table structure ####
-    print_str = "|| {:^14} || {:>5.2f}% || {:>5.2f}% || {:>5.2f}% || {:>5.2f}% ||"
-    title_str = "\n|| {:^14} || {:>5}  || {:>5}  || {:>5}  || {:>5}  || Delay: {:2.0f} minutes"
+    print_str = "|| {:^14} || {:>7.2f}% || {:>7.2f}% || {:>7.2f}% || {:>7.2f}% ||"
+    title_str = "\n|| {:^14} || {:^8} || {:^8} || {:^8} || {:^8} || Delay: {:2.0f} minutes"
 
     for d in runtimeConfigs["delays"]:
         all_stats = dbAdapter.get_stats_for_delay(d.seconds)
