@@ -63,6 +63,8 @@ def start_http_session( observatory ):
                 update_record(db_data)
     except urllib.error.HTTPError:
         print("Error connecting to ", url)
+    except http.client.IncompleteRead:
+        print("Incomplete Read, Something went wrong network side")
     
 def form_file_name(obs_str, date):
     file_template = "{obs}{year:4d}{month:02d}{day:02d}vmin.min"
