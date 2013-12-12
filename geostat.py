@@ -11,7 +11,7 @@ def setupEnv():
     
     ## Setup all runtime configurations here ##
     configs["observatories"] = ["BOU", "BDT", "BRW", "BSL", "CMO", "DED", "FRD", "FRN", "GUA", "HON", "NEW", "SHU", "SIT", "SJG", "TUC"]
-    configs["delays"] = [datetime.timedelta(minutes=0), datetime.timedelta(minutes=1),datetime.timedelta(minutes=5), datetime.timedelta(minutes=6), datetime.timedelta(minutes=7), datetime.timedelta(minutes=8), datetime.timedelta(minutes=9), datetime.timedelta(minutes=10),datetime.timedelta(minutes=15)]
+    configs["delays"] = [datetime.timedelta(minutes=1),datetime.timedelta(minutes=5), datetime.timedelta(minutes=6), datetime.timedelta(minutes=7), datetime.timedelta(minutes=8), datetime.timedelta(minutes=9), datetime.timedelta(minutes=10),datetime.timedelta(minutes=15)]
     configs["url"] = "http://magweb.cr.usgs.gov/data/magnetometer"
     configs["db"] = geosqliteatapter.SqliteAdapter("geostat.db", configs["observatories"], configs["delays"])
     configs["log_file"] = "log.txt"
