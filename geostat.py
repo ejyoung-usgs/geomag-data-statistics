@@ -101,7 +101,7 @@ def printTable():
     div_str = "<div class=\"delay{delay}\">\n"
 
     for d in runtimeConfigs["delays"]:
-        log.write( div_str.format(delay = d.seconds/60) )
+        log.write( div_str.format(delay = int(d.seconds/60)) )
         log.write( "<table>\n")
         all_stats = dbAdapter.get_stats_for_delay(d.seconds)
         log.write(title_str.format(d.seconds/60) )
