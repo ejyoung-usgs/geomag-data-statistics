@@ -90,7 +90,10 @@ def update_record(data_map):
 
 def printTable():
     log = open(runtimeConfigs["html_file"], "w")
-    log.write("<html>\n")
+    header_file = open("head.html")
+    header = header_file.read()
+    log.write(header)
+    header_file.close()
     print("Uptime", datetime.datetime.now() - runtimeConfigs["program_start"])
     dbAdapter = runtimeConfigs["db"]
     print_str = "<tr> <td>{}</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> </tr>\n"
@@ -106,7 +109,10 @@ def printTable():
             log.write(print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
         log.write("</table>\n")
         log.write("</div>\n")
-    log.write("</html>\n")
+    footer_file = open("foot.html")
+    footer = footer_file.read()
+    log.write(footer)
+    footer_file.close()
     log.close()
 
     
