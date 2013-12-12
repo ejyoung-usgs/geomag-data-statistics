@@ -1,0 +1,12 @@
+# Output html #
+#######################
+statistics.html
+
+# Database files #
+#######################
+*.db
+*.db*
+
+# Python cache files #
+#######################
+__*
