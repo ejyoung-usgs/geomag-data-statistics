@@ -14,7 +14,7 @@ def setupEnv():
     configs["delays"] = [datetime.timedelta(minutes=1),datetime.timedelta(minutes=5), datetime.timedelta(minutes=6), datetime.timedelta(minutes=7), datetime.timedelta(minutes=8), datetime.timedelta(minutes=9), datetime.timedelta(minutes=10),datetime.timedelta(minutes=15)]
     configs["url"] = "http://magweb.cr.usgs.gov/data/magnetometer"
     configs["db"] = geosqliteatapter.SqliteAdapter("geostat.db", configs["observatories"], configs["delays"])
-    configs["log_file"] = "log.txt"
+    configs["html_file"] = "statistics.html"
     configs["program_start"] = datetime.datetime.now()
     return configs
     
@@ -89,27 +89,25 @@ def update_record(data_map):
     dbAdapter.update_geostat(data_map["id"], data_map["h"], data_map["d"], data_map["z"], data_map["f"], data_map["point_count"])
 
 def printTable():
+    log = open(runtimeConfigs["html_file"], "w")
+    log.write("<html>\n")
     print("Uptime", datetime.datetime.now() - runtimeConfigs["program_start"])
-    log = open(runtimeConfigs["log_file"], "w")
-    log.close()
-    log = open(runtimeConfigs["log_file"], "a")
     dbAdapter = runtimeConfigs["db"]
-    #### TODO Parse data into some logical table structure ####
-    print_str = "|| {:^14} || {:>7.2f}% || {:>7.2f}% || {:>7.2f}% || {:>7.2f}% ||"
-    title_str = "\n|| {:^14} || {:^8} || {:^8} || {:^8} || {:^8} || Delay: {:2.0f} minutes"
+    print_str = "<tr> <td>{}</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> </tr>\n"
+    title_str = "<tr> <th>Observatory</th> <th>H</th> <th>D</th> <th>Z</th> <th>F</th> <th>Delay: {:2.0f} Minutes </th> </tr>\n"
+    div_str = "<div class=\"delay{delay}\">\n"
 
     for d in runtimeConfigs["delays"]:
+        log.write( div_str.format(delay = d.seconds/60) )
+        log.write( "<table>\n")
         all_stats = dbAdapter.get_stats_for_delay(d.seconds)
-
-        print(title_str.format("Observatory", "H", "D", "Z", "F", d.seconds/60))
-        log.write(title_str.format("Observatory", "H", "D", "Z", "F", d.seconds/60) )
-        log.write("\n")
+        log.write(title_str.format(d.seconds/60) )
         for item in all_stats:
-            print (print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
             log.write(print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
-            log.write("\n")
+        log.write("</table>\n")
+        log.write("</div>\n")
+    log.write("</html>\n")
     log.close()
-    print("\n\n")
 
     
 runtimeConfigs = setupEnv()
