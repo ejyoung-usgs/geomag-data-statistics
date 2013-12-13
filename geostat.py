@@ -100,6 +100,12 @@ def printTable():
     title_str = "<tr> <th>Observatory</th> <th>H</th> <th>D</th> <th>Z</th> <th>F</th> <th>Delay: {:2.0f} Minutes </th> </tr>\n"
     div_str = "<div class=\"delay{delay}\">\n"
 
+    log.write("<div class=\"select_box\">\n<select>\n")
+    option_str = "<option value=\"{0}\">{0}</option>\n"
+    for d in runtimeConfigs["delays"]:
+        log.write(option_str.format(str(int(d.seconds/60))+" Minute(s)"))
+    log.write("</select>\n</div>\n")
+
     for d in runtimeConfigs["delays"]:
         log.write( div_str.format(delay = int(d.seconds/60)) )
         log.write( "<table>\n")
