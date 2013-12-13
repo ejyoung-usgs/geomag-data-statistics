@@ -1,0 +1,5 @@
+table tr th {
+  background-color: rgb(235, 234, 227);
+  background-image: url("http://earthquake.usgs.gov/template/images/bg-headers3.gif");
+  border-color: rgb(58, 47, 32);
+}
