@@ -28,31 +28,31 @@ table tr th:first-child {
     padding-right: 0px;
 }
 
-.delay1 {
+#delay1 {
     visibility: hidden;
     display: none;
 }
-.delay5 {
+#delay5 {
     visibility: hidden;
     display: none;
 }
-.delay6 {
+#delay6 {
     visibility: hidden;
     display: none;
 }
-.delay7 {
+#delay7 {
     visibility: hidden;
     display: none;
 }
-.delay8 {
+#delay8 {
     visibility: hidden;
     display: none;
 }
-.delay9 {
+#delay9 {
     visibility: hidden;
     display: none;
 }
-.delay15 {
+#delay15 {
     visibility: hidden;
     display: none;
 }

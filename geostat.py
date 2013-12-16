@@ -98,12 +98,15 @@ def printTable():
     dbAdapter = runtimeConfigs["db"]
     print_str = "<tr> <td>{}</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> </tr>\n"
     title_str = "<tr> <th>Observatory</th> <th>H</th> <th>D</th> <th>Z</th> <th>F</th> <th>Delay: {:2.0f} Minutes </th> </tr>\n"
-    div_str = "<div class=\"delay{delay}\">\n"
+    div_str = "<div id=\"delay{delay}\" class=\"delays\">\n"
 
-    log.write("<div class=\"select_box\">\n<select>\n")
-    option_str = "<option value=\"{0}\">{0}</option>\n"
+    log.write("<div class=\"select_box\">\n<select onchange=\"showTime(this)\">\n")
+    option_str = "<option value=\"{0}\">{0} Minute(s)</option>\n"
     for d in runtimeConfigs["delays"]:
-        log.write(option_str.format(str(int(d.seconds/60))+" Minute(s)"))
+        if int(d.seconds/60) == 10:
+            log.write("<option selected=\"selected\" value=\"10\"> 10 Minute(s) </option>\n")
+        else:
+            log.write(option_str.format(str(int(d.seconds/60))))
     log.write("</select>\n</div>\n")
 
     for d in runtimeConfigs["delays"]:
