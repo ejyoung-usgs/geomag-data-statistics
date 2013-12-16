@@ -60,3 +60,13 @@ table tr th:last-child {
     visibility: hidden;
     display: none;
 }
+
+.select_box:before {
+    content: "Delay: ";
+    font-size: 2em;
+    font-weight: bold;
+}
+.select_box select {
+    font-size: 2em;
+    font-weight: bold;
+}
