@@ -27,6 +27,10 @@ table tr th:first-child {
     padding-left: 10px;
     padding-right: 0px;
 }
+table tr th:last-child {
+    visibility: hidden;
+    display: none;
+}
 
 #delay1 {
     visibility: hidden;
