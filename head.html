@@ -73,23 +73,26 @@
   <h1>Geomagnetism Real-Time Data Statistics</h1>
   <h2>1 Minute data</h2>
   <p>
-    If you're using a tool like wget to automatically pull real-time
-    geomagnetic data it may help to understand how the data works. There is a
-    time delay from the moment that the data is collected until it is available
-    on the website just by the nature of the systems. Our systems can't handle
-    sending every second of data as it is collected, yet. So they are packaged
-    into larger chunks (normally 5 minutes) for delivery from the observatory
-    to our distribution system. From there we have another delay as any new
-    data that has arrived to the distribution system is written to a file and
-    rsynced to the web page every 5 minutes. This means that the data will
-    normally be delayed by about 10 minutes from the moment it is collect until
-    it can be presented.
+    If you're pulling near-realtime geomagnetic data at regular intervals, it
+    may help to understand the inherent delay between the time that data are
+    acquired and the time that data become available on the website. The delay
+    includes data transmission from an observatory to a central distribution
+    system and transmission from the distribution system to the webpage. At
+    present, the observatories transmit 1-minute data in 5-minute blocks,
+    yielding a maximum delay of 5 minutes before data arrive at the
+    distribution system.  From the distribution system, data are rsynced to the
+    webpage at 5-minute intervals, adding an additional delay of up to 5
+    minutes. This means that 1-minute data will typically be delayed by up to
+    10 minutes from the time of acquisition to availability on the webpage.
   </p>
   <p>
-    At the beginning of each day, a new file is created with dead values
-    (99999.00) for each of H, E, Z and F for every time stamp for that day.
-    When new data comes in it over-writes the appropriate row in that file with
-    actual data.
+    At the beginning of each day, the webpage receives a 1-day file containing
+    dead data values (99999.00) for each minute of the day. As new data
+    arrives, it over-writes the dead values in the appropriate row of the file.
+    This means that you will have to re-pull the same file repeatedly in a
+    single day, and if you're looking for results nearing 100% complete data
+    you should be grabbing the data from the row that is 10 minutes behind
+    current time.
   </p>
   <p>
     These charts show the average amount of data that you will be able to
