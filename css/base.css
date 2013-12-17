@@ -27,6 +27,10 @@ table tr th:first-child {
     padding-left: 10px;
     padding-right: 0px;
 }
+table tr th:last-child {
+    visibility: hidden;
+    display: none;
+}
 
 #delay1 {
     visibility: hidden;
@@ -55,4 +59,14 @@ table tr th:first-child {
 #delay15 {
     visibility: hidden;
     display: none;
+}
+
+.select_box:before {
+    content: "Delay: ";
+    font-size: 2em;
+    font-weight: bold;
+}
+.select_box select {
+    font-size: 2em;
+    font-weight: bold;
 }
