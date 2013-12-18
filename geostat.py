@@ -31,7 +31,7 @@ def start_http_session( observatory ):
         request = urllib.request.urlopen(url)
         request_sec = urllib.request.urlopen(url)
         regex_string = "{year}-{month:02d}-{day:02d} {hour:02d}:{minute:02d}:{second:02d}.*"
-        data_regex_string = "(-?\\d{1,5}\\.\\d{2}\\s+){4}"
+        data_regex_string = "(-?\\d{1,5}\\.\\d{2}\\s*){4}"
         data_regex = re.compile( data_regex_string )
         dataset=[]
         dataset_s = []
