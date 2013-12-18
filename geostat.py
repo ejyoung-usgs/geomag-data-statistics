@@ -74,9 +74,6 @@ def form_file_name(obs_str, date):
     
     return file_template.format( obs = obs_str, year = today_year, month = today_month, day = today_day )
 
-def insert_new_record(observatory, db):
-    dbAdapter = geosqliteatapter.SqliteAdapter(db)
-    #dbAdapter.insert_stat()
 
 def get_record(observatory, delay):
     dbAdapter = runtimeConfigs["db"]
