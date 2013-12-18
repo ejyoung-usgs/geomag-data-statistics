@@ -98,6 +98,13 @@ class SqliteAdapter:
             return None
         return delay_return[0][0]
 
+    def find_res_id_by_name(self, res):
+        cursor = self.__db_connection.cursor()
+        query = "select _id from Resolutions where res=?"
+        cursor.execute(query, (res,) )
+        res_return = cursor.fetchone()
+        return res_return[0]
+
     def update_geostat(self, id, h, d, z, f, point_count):
         cursor = self.__db_connection.cursor()
         query = "update GeoStats set h=?, d=?, z=?, f=?, point_count=? where _id=?"
