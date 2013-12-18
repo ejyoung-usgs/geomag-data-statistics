@@ -60,10 +60,10 @@ class SqliteAdapter:
         cursor.execute("INSERT INTO Delays (delay) VALUES(?)", (delay,) )
         self.__db_connection.commit()
 
-    def select_stat(self, location, delay):
+    def select_stat(self, location, delay, res):
         self.__db_connection.row_factory = sqlite3.Row
         cursor = self.__db_connection.cursor()
-        result = cursor.execute("SELECT GeoStats._id, h, d, z, f, point_count FROM GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id where Locations._id = ? and Delays._id = ?", (location, delay,))
+        result = cursor.execute("SELECT GeoStats._id, h, d, z, f, point_count FROM GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id where Locations._id = ? and Delays._id = ? and res_fk = ?", (location, delay, res,))
         data = result.fetchone()
         data.keys()
         point_data = dict()
