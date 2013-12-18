@@ -74,6 +74,12 @@ def form_file_name(obs_str, date):
     
     return file_template.format( obs = obs_str, year = today_year, month = today_month, day = today_day )
 
+def form_file_name_sec(obs_str, date):
+    file_template = "{obs}{year:4d}{month:02d}{day:02d}vsec.sec"
+    today_year = date.year
+    today_month = date.month
+    today_day = date.day
+    return file_template.format( obs = obs_str, year = today_year, month = today_month, day = today_day )
 
 def get_record(observatory, delay):
     dbAdapter = runtimeConfigs["db"]
