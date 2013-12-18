@@ -6,9 +6,9 @@ import time
 
 import geosqliteatapter
 
-def setupEnv():    
+def setupEnv():
     configs = dict()
-    
+
     ## Setup all runtime configurations here ##
     configs["observatories"] = ["BOU", "BDT", "BRW", "BSL", "CMO", "DED", "FRD", "FRN", "GUA", "HON", "NEW", "SHU", "SIT", "SJG", "TUC"]
     configs["delays"] = [datetime.timedelta(minutes=1),datetime.timedelta(minutes=5), datetime.timedelta(minutes=6), datetime.timedelta(minutes=7), datetime.timedelta(minutes=8), datetime.timedelta(minutes=9), datetime.timedelta(minutes=10),datetime.timedelta(minutes=15)]
@@ -16,8 +16,9 @@ def setupEnv():
     configs["db"] = geosqliteatapter.SqliteAdapter("geostat.db", configs["observatories"], configs["delays"])
     configs["html_file"] = "statistics.html"
     configs["program_start"] = datetime.datetime.now()
+    #configs["program_start"] = time.time()
     return configs
-    
+
 def start_http_session( observatory ):
 
     today_utc = datetime.datetime.utcnow()
@@ -44,10 +45,10 @@ def start_http_session( observatory ):
                 data_result = re.search(data_regex, result.group() )
                 data_points = data_result.group().split()
                 data_map = dict()
-                data_map["h"] = data_points[0] 
-                data_map["d"] = data_points[1] 
-                data_map["z"] = data_points[2] 
-                data_map["f"] = data_points[3] 
+                data_map["h"] = data_points[0]
+                data_map["d"] = data_points[1]
+                data_map["z"] = data_points[2]
+                data_map["f"] = data_points[3]
 
                 delay_value = dtime.seconds
                 db_data = get_record(observatory, delay_value)
@@ -65,13 +66,13 @@ def start_http_session( observatory ):
         print("Error connecting to ", url)
     except http.client.IncompleteRead:
         print("Incomplete Read, Something went wrong network side")
-    
+
 def form_file_name(obs_str, date):
     file_template = "{obs}{year:4d}{month:02d}{day:02d}vmin.min"
     today_year = date.year
     today_month = date.month
     today_day = date.day
-    
+
     return file_template.format( obs = obs_str, year = today_year, month = today_month, day = today_day )
 
 
@@ -85,13 +86,27 @@ def update_record(data_map):
     dbAdapter = runtimeConfigs["db"]
     dbAdapter.update_geostat(data_map["id"], data_map["h"], data_map["d"], data_map["z"], data_map["f"], data_map["point_count"])
 
+
+def convert_timedelta(duration):
+    days, seconds = duration.days, duration.seconds
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    seconds = (seconds % 60)
+    return days, hours, minutes, seconds
+
+
 def printTable():
     log = open(runtimeConfigs["html_file"], "w")
     header_file = open("head.html")
     header = header_file.read()
     log.write(header)
     header_file.close()
-    print("Uptime", datetime.datetime.now() - runtimeConfigs["program_start"])
+    uptime =  datetime.datetime.now() - runtimeConfigs["program_start"]
+    #uptime =  time.time() - runtimeConfigs["program_start"]
+    #uptime = uptime.strftime('%H hours %M minutes %S seconds')
+    days, hours, minutes, seconds = convert_timedelta(uptime)
+    uptime2 = '{} day{}, {} hour{}, {} minute{}, {} second{}'.format(days, 's' if days != 1 else '', hours, 's' if hours != 1 else '', minutes, 's' if minutes != 1 else '', seconds, 's' if seconds != 1 else '')
+
     dbAdapter = runtimeConfigs["db"]
     print_str = "<tr> <td>{}</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> </tr>\n"
     title_str = "<tr> <th>Observatory</th> <th>H</th> <th>D</th> <th>Z</th> <th>F</th> <th>Delay: {:2.0f} Minutes </th> </tr>\n"
@@ -105,6 +120,14 @@ def printTable():
         else:
             log.write(option_str.format(str(int(d.seconds/60))))
     log.write("</select>\n</div>\n")
+
+    print("Uptime: ", uptime2)
+    log.write("<h3>Uptime: ")
+    log.write(str(uptime2))
+    log.write("</h3>")
+
+    # Write the header for seconds or minutes data
+    log.write("<h2>One Minute</h2>\n")
 
     for d in runtimeConfigs["delays"]:
         log.write( div_str.format(delay = int(d.seconds/60)) )
@@ -121,7 +144,7 @@ def printTable():
     footer_file.close()
     log.close()
 
-    
+
 runtimeConfigs = setupEnv()
 
 while True:
