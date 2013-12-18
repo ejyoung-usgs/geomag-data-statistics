@@ -25,7 +25,7 @@ class SqliteAdapter:
                 self.insert_delay(delay.seconds)
 
         #### Setup available resolutions ####
-        if self.get_resolutions == None:
+        if self.get_resolutions() == None:
             self.insert_resolution("min")
             self.insert_resolution("sec")
 

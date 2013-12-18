@@ -36,7 +36,7 @@ def start_http_session( observatory ):
         dataset=[]
         dataset_s = []
         geo_data = request.read().decode("utf-8")
-        geo_data_s = request.read().decode("utf-8")
+        geo_data_s = request_sec.read().decode("utf-8")
 
         for dtime in deltas:
             today_date = today_utc - dtime
