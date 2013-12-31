@@ -3,6 +3,7 @@ import datetime
 import re
 import sqlite3
 import time
+import http
 
 import geosqliteatapter
 
@@ -110,7 +111,7 @@ def printTable():
     dbAdapter = runtimeConfigs["db"]
     print_str = "<tr> <td>{}</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> </tr>\n"
     title_str = "<tr> <th>Observatory</th> <th>H</th> <th>D</th> <th>Z</th> <th>F</th> <th>Delay: {:2.0f} Minutes </th> </tr>\n"
-    div_str = "<div id=\"delay{delay}\" class=\"delays\">\n"
+    div_str = "<div class=\"delay{delay} delays {res}\">\n"
 
     log.write("<div class=\"select_box\">\n<select onchange=\"showTime(this)\">\n")
     option_str = "<option value=\"{0}\">{0} Minute(s)</option>\n"
@@ -120,11 +121,23 @@ def printTable():
         else:
             log.write(option_str.format(str(int(d.seconds/60))))
     log.write("</select>\n</div>\n")
+    log.write("<h2> Minute Data </h2>")
+    for d in runtimeConfigs["delays"]:
+        log.write( div_str.format(delay = int(d.seconds/60), res = "minute") )
+        log.write( "<table>\n")
+        all_stats = dbAdapter.get_stats_for_delay(d.seconds, "min")
+        log.write(title_str.format(d.seconds/60) )
+        for item in all_stats:
+            log.write(print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
+        log.write("</table>\n")
+        log.write("</div>\n")
+
+    log.write("<h2> Second Data </h2>")
 
     for d in runtimeConfigs["delays"]:
-        log.write( div_str.format(delay = int(d.seconds/60)) )
+        log.write(div_str.format( delay = int(d.seconds/60), res = "second") )
         log.write( "<table>\n")
-        all_stats = dbAdapter.get_stats_for_delay(d.seconds)
+        all_stats = dbAdapter.get_stats_for_delay(d.seconds, "sec")
         log.write(title_str.format(d.seconds/60) )
         for item in all_stats:
             log.write(print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))

@@ -139,11 +139,12 @@ class SqliteAdapter:
             return_array.append(row_data)
         return return_array
 
-    def get_stats_for_delay(self, delay):
+    def get_stats_for_delay(self, delay, res):
+        res_id = self.find_res_id_by_name(res)
         self.__db_connection.row_factory = sqlite3.Row
         cursor = self.__db_connection.cursor()
-        query = "select observatory_name, delay, h, d, z, f from GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id where delay = ?"
-        result_set = cursor.execute(query, (delay,))
+        query = "select observatory_name, delay, h, d, z, f from GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id where delay = ? and res_fk = ?"
+        result_set = cursor.execute(query, (delay, res_id,))
         return_array = []
         rows = result_set.fetchall()
         for row in rows:
