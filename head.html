@@ -72,7 +72,20 @@
   <a id="startcontent"></a>
 
   <h1>Geomagnetism Real-Time Data Statistics</h1>
-  <h2>1 Minute data</h2>
+  <!--<h2>1 Minute data</h2>-->
+  <h3>How to use the data</h3>
+  <p>
+    At the beginning of each day, the
+    <a href="http://geomag.usgs.gov/products/downloads.php">download page</a>
+    for Automated Downloads receives a 1-day file containing dead data values
+    (99999.00) for each minute or second of the day. As new data arrives, it
+    over-writes the dead values in the appropriate row of the file. This means
+    that it is necessary to re-download the same file repeatedly in a single
+    day, and if you're looking for results nearing 100% complete data for
+    continuous, near real-time, time-series data you should be grabbing the
+    data from the row in the file that is 10 minutes behind current time.
+  </p>
+  <h3>Why the data is delayed</h3>
   <p>
     If you're pulling near-realtime geomagnetic data at regular intervals, it
     may help to understand the inherent delay between the time that data are
@@ -81,24 +94,21 @@
     system and transmission from the distribution system to the webpage. At
     present, the observatories transmit 1-minute data in 5-minute blocks,
     yielding a maximum delay of 5 minutes before data arrive at the
-    distribution system.  From the distribution system, data are rsynced to the
-    webpage at 5-minute intervals, adding an additional delay of up to 5
+    distribution system.  From the distribution system, data are synchronized
+    to the webpage at 5-minute intervals, adding an additional delay of up to 5
     minutes. This means that 1-minute data will typically be delayed by up to
     10 minutes from the time of acquisition to availability on the webpage.
   </p>
+  <h3>What is in the tables</h3>
   <p>
-    At the beginning of each day, the webpage receives a 1-day file containing
-    dead data values (99999.00) for each minute of the day. As new data
-    arrives, it over-writes the dead values in the appropriate row of the file.
-    This means that you will have to re-pull the same file repeatedly in a
-    single day, and if you're looking for results nearing 100% complete data
-    you should be grabbing the data from the row that is 10 minutes behind
-    current time.
-  </p>
-  <p>
-    These charts show the average amount of data that you will be able to
+    These tables show the average amount of data that you will be able to
     access/use over the total data that should be available based on the delay
-    from actual real-time that you use. These numbers are updated every 15
+    from actual real-time that you use. For example, if a Delay of 10 minutes
+    is selected and the H value for BOU reads 98.33%, this means that 98.33% of
+    Boulder's H data arrived within 10 minutes of the moment that it was
+    collected since this page began watching the data (indicated by the
+    uptime), or 59 out of the 60 minutes of an hour had values while 1 value
+    hadn't arrived yet. These tables are updated approximately every 15
     minutes.
   </p>
 
