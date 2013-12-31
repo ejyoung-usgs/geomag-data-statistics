@@ -13,15 +13,21 @@ class SqliteAdapter:
 
     def init_database(self):
         cursor = self.__db_connection.cursor()
-        cursor.execute("CREATE TABLE IF NOT EXISTS GeoStats ( _id INTEGER , h REAL, d REAL, z REAL, f REAL, point_count INTEGER,observatory_fk INTEGER,  delay_fk ,PRIMARY KEY(_id), FOREIGN KEY(observatory_fk) REFERENCES Locations(_id), FOREIGN KEY(delay_fk) REFERENCES Delays(_id) )")
+        cursor.execute("CREATE TABLE IF NOT EXISTS GeoStats ( _id INTEGER , h REAL, d REAL, z REAL, f REAL, point_count INTEGER,observatory_fk INTEGER,  res_fk INTEGER, delay_fk ,PRIMARY KEY(_id), FOREIGN KEY(observatory_fk) REFERENCES Locations(_id), FOREIGN KEY(delay_fk) REFERENCES Delays(_id), FOREIGN KEY(res_fk) REFERENCES Resolutions(_id) )")
         cursor.execute("CREATE TABLE IF NOT EXISTS Locations( _id INTEGER, observatory_name TEXT, PRIMARY KEY(_id) )" )
         cursor.execute("CREATE TABLE IF NOT EXISTS Delays ( _id INTEGER, delay INTEGER, PRIMARY KEY(_id) ) ") #### Delay is in seconds ####
+        cursor.execute("CREATE TABLE IF NOT EXISTS Resolutions ( _id INTEGER, res TEXT, PRIMARY KEY (_id) )")
         self.__db_connection.commit();
 
         #### Setup available delays ####
         for delay in self.__delays:
             if self.find_delay_id_by_value(delay.seconds) == None:
                 self.insert_delay(delay.seconds)
+
+        #### Setup available resolutions ####
+        if self.get_resolutions() == None:
+            self.insert_resolution("min")
+            self.insert_resolution("sec")
 
         #### Setup Observatory locations ####
         for id in self.__locations:
@@ -36,11 +42,17 @@ class SqliteAdapter:
                 cursor.execute(check_stat_query, (location_id, delay_id,) )
                 results = cursor.fetchall()
                 if len(results ) == 0 :
-                    self.__insert_stat(location_id, delay_id)
+                    self.__insert_stat(location_id, delay_id, 1)
+                    self.__insert_stat(location_id, delay_id, 2)
 
     def insert_observatory(self, location):
         cursor = self.__db_connection.cursor()
         cursor.execute("INSERT INTO Locations (observatory_name) VALUES(?)", (location,) )
+        self.__db_connection.commit()
+
+    def insert_resolution(self, res):
+        cursor = self.__db_connection.cursor()
+        cursor.execute("INSERT INTO Resolutions (res) VALUES(?)", (res,) )
         self.__db_connection.commit()
 
     def insert_delay(self, delay):
@@ -48,10 +60,10 @@ class SqliteAdapter:
         cursor.execute("INSERT INTO Delays (delay) VALUES(?)", (delay,) )
         self.__db_connection.commit()
 
-    def select_stat(self, location, delay):
+    def select_stat(self, location, delay, res):
         self.__db_connection.row_factory = sqlite3.Row
         cursor = self.__db_connection.cursor()
-        result = cursor.execute("SELECT GeoStats._id, h, d, z, f, point_count FROM GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id where Locations._id = ? and Delays._id = ?", (location, delay,))
+        result = cursor.execute("SELECT GeoStats._id, h, d, z, f, point_count FROM GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id where Locations._id = ? and Delays._id = ? and res_fk = ?", (location, delay, res,))
         data = result.fetchone()
         data.keys()
         point_data = dict()
@@ -63,10 +75,10 @@ class SqliteAdapter:
         point_data["point_count"] = data["point_count"]
         return point_data
 
-    def __insert_stat(self, location, delay):
+    def __insert_stat(self, location, delay, res):
         cursor = self.__db_connection.cursor()
-        query = "insert into GeoStats(observatory_fk, delay_fk, h, d, z, f, point_count) values (?, ? , 0, 0, 0, 0, 0)"
-        cursor.execute( query, (location, delay,) )
+        query = "insert into GeoStats(observatory_fk, delay_fk, h, d, z, f, point_count, res_fk) values (?, ? , 0, 0, 0, 0, 0, ?)"
+        cursor.execute( query, (location, delay, res,) )
         self.__db_connection.commit()
 
     def find_location_id_by_name(self, name):
@@ -86,11 +98,28 @@ class SqliteAdapter:
             return None
         return delay_return[0][0]
 
+    def find_res_id_by_name(self, res):
+        cursor = self.__db_connection.cursor()
+        query = "select _id from Resolutions where res=?"
+        cursor.execute(query, (res,) )
+        res_return = cursor.fetchone()
+        return res_return[0]
+
     def update_geostat(self, id, h, d, z, f, point_count):
         cursor = self.__db_connection.cursor()
         query = "update GeoStats set h=?, d=?, z=?, f=?, point_count=? where _id=?"
         cursor.execute(query, (h, d, z, f, point_count, id,) )
         self.__db_connection.commit()
+
+    def get_resolutions(self):
+        cursor = self.__db_connection.cursor()
+        query = "select * from Resolutions"
+        result = cursor.execute(query)
+        result_set = result.fetchall()
+        if len(result_set) == 0:
+            return None
+        else:
+            return result_set
 
     def get_all_stats(self):
         self.__db_connection.row_factory = sqlite3.Row
@@ -110,11 +139,12 @@ class SqliteAdapter:
             return_array.append(row_data)
         return return_array
 
-    def get_stats_for_delay(self, delay):
+    def get_stats_for_delay(self, delay, res):
+        res_id = self.find_res_id_by_name(res)
         self.__db_connection.row_factory = sqlite3.Row
         cursor = self.__db_connection.cursor()
-        query = "select observatory_name, delay, h, d, z, f from GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id where delay = ?"
-        result_set = cursor.execute(query, (delay,))
+        query = "select observatory_name, delay, h, d, z, f from GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id where delay = ? and res_fk = ?"
+        result_set = cursor.execute(query, (delay, res_id,))
         return_array = []
         rows = result_set.fetchall()
         for row in rows:

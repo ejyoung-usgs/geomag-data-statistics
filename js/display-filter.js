@@ -7,6 +7,10 @@ function showTime(selection)
         delays[i].style.display = "none";
         delays[i].style.visibility = "hidden";
     }
-    document.getElementById(toShow).style.display="block";
-    document.getElementById(toShow).style.visibility="visible";
+    var divs = document.getElementsByClassName(toShow)
+    for(i = 0; i < divs.length; ++i)
+    {
+        divs[i].style.display="block";
+        divs[i].style.visibility="visible";
+    }
 }
