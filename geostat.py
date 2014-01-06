@@ -54,7 +54,7 @@ def process_data(data, regex, res, dtime, observatory):
     data_regex_string = "(-?\\d{1,5}\\.\\d{2}\\s*){4}"
     data_regex = re.compile( data_regex_string )
     if result is None:
-        print("regex not matched for", today_date, regex_string.format(year = today_date.year, month = today_date.month, day = today_date.day, hour = today_date.hour, minute = today_date.minute, second =0))
+        print("regex not matched for", regex.pattern)
     else:
         data_result = re.search(data_regex, result.group() )
         data_points = data_result.group().split()
