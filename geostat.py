@@ -4,6 +4,7 @@ import re
 import sqlite3
 import time
 import http
+import subprocess
 
 import geosqliteatapter
 
@@ -173,9 +174,7 @@ def printTable():
 
 runtimeConfigs = setupEnv()
 
-while True:
-    for obs in runtimeConfigs["observatories"]:
-        start_http_session( obs )
-    printTable()
-    time.sleep(60)
-
+for obs in runtimeConfigs["observatories"]:
+    start_http_session( obs )
+printTable()
+subprocess.call(["rsync", "-avz", "-e 'ssh -i maguser.key'", "statistics.html", "maguser@magweb1.cr.usgs.gov:/webinput/vhosts/magweb/htdocs/data/", "--dry-run"])
