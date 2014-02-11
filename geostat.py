@@ -173,4 +173,4 @@ runtimeConfigs = setupEnv()
 for obs in runtimeConfigs["observatories"]:
     start_http_session( obs )
 printTable()
-subprocess.call(["rsync", "-avz", "-e", "ssh -i maguser.key", "statistics.html", "maguser@magweb1.cr.usgs.gov:/webinput/vhosts/magweb/htdocs/data/", "--dry-run"])
+subprocess.call(["rsync", "-avz", "-e", "ssh -i maguser.key", "statistics.html", "maguser@magweb1.cr.usgs.gov:/webinput/vhosts/magweb/htdocs/data/"])
