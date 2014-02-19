@@ -13,7 +13,7 @@ class SqliteAdapter:
 
     def init_database(self):
         cursor = self.__db_connection.cursor()
-        cursor.execute("CREATE TABLE IF NOT EXISTS GeoStats ( _id INTEGER , h REAL, d REAL, z REAL, f REAL, point_count INTEGER,observatory_fk INTEGER,  res_fk INTEGER, delay_fk ,PRIMARY KEY(_id), FOREIGN KEY(observatory_fk) REFERENCES Locations(_id), FOREIGN KEY(delay_fk) REFERENCES Delays(_id), FOREIGN KEY(res_fk) REFERENCES Resolutions(_id) )")
+        cursor.execute("CREATE TABLE IF NOT EXISTS GeoStats ( _id INTEGER , h INTEGER, d INTEGER, z INTEGER, f INTEGER, point_count INTEGER, timestamp NUMERIC, observatory_fk INTEGER,  res_fk INTEGER, delay_fk ,PRIMARY KEY(_id), FOREIGN KEY(observatory_fk) REFERENCES Locations(_id), FOREIGN KEY(delay_fk) REFERENCES Delays(_id), FOREIGN KEY(res_fk) REFERENCES Resolutions(_id) )")
         cursor.execute("CREATE TABLE IF NOT EXISTS Locations( _id INTEGER, observatory_name TEXT, PRIMARY KEY(_id) )" )
         cursor.execute("CREATE TABLE IF NOT EXISTS Delays ( _id INTEGER, delay INTEGER, PRIMARY KEY(_id) ) ") #### Delay is in seconds ####
         cursor.execute("CREATE TABLE IF NOT EXISTS Resolutions ( _id INTEGER, res TEXT, PRIMARY KEY (_id) )")
