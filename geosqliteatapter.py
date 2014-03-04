@@ -92,7 +92,7 @@ class SqliteAdapter:
     def insert_geostat(self, stat):
         cursor = self.__db_connection.cursor()
         query = "INSERT INTO GeoStats (observatory_fk, delay_fk, res_fk, h, d, z , f, timestamp) VALUES(?,?,?,?,?,?,?,?)"
-        obs_key = self.find_delay_id_by_value(stat["obs"])
+        obs_key = self.find_location_id_by_name(stat["obs"])
         delay_key = self.find_delay_id_by_value(stat["delay"])
         res_key = self.find_res_id_by_name(stat["res"])
         cursor.execute(query, (obs_key, delay_key, res_key, stat["h"], stat["d"], stat["z"], stat["f"], stat["timestamp"],) )
