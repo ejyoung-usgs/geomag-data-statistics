@@ -27,7 +27,6 @@ def start_http_session( observatory ):
     deltas = runtimeConfigs["delays"]
 
     requestString = "{url}/{observatory}/{type}/{file}"
-    #requestString.format( url = runtimeConfigs["url"], observatory = runtimeConfigs["observatory"], type = "OneMinute", file= form_file_name("frd", today_date) ) )
     url = requestString.format( url = runtimeConfigs["url"], observatory = observatory, type = "OneMinute", file = form_file_name(observatory.lower(), today_utc) )
     url_sec = requestString.format( url = runtimeConfigs["url"], observatory = observatory, type = "OneSecond", file = form_file_name_sec(observatory.lower(), today_utc) )
     try:
@@ -60,23 +59,23 @@ def process_data(data, regex, res, dtime, observatory):
         data_result = re.search(data_regex, result.group() )
         data_points = data_result.group().split()
         data_map = dict()
+
+        for point in range(len(data_points)):
+            if data_points[point] != "99999.00":
+                data_points[point] = "100"
+            else:
+                data_points[point] = "0"
+
         data_map["h"] = data_points[0]
         data_map["d"] = data_points[1]
         data_map["z"] = data_points[2]
         data_map["f"] = data_points[3]
 
-        delay_value = dtime.seconds
-        db_data = get_record(observatory, delay_value, res)
-        for key, value in data_map.items():
-            old_average = db_data[key]
-            point_count = db_data["point_count"]
-            valid = 0
-            if value != "99999.00":
-                valid = 100
-            new_average = (old_average * point_count + valid) / ( point_count + 1)
-            db_data[key] = new_average
-        db_data["point_count"] = db_data["point_count"] + 1
-        update_record(db_data)
+        data_map["delay"] = dtime.seconds
+        data_map["timestamp"] = datetime.datetime.utcnow()
+        data_map["res"] = res
+        data_map["obs"] = observatory
+        insert_record(data_map)
     
 def form_file_name(obs_str, date):
     file_template = "{obs}{year:4d}{month:02d}{day:02d}vmin.min"
@@ -100,9 +99,9 @@ def get_record(observatory, delay, res):
     res_key = dbAdapter.find_res_id_by_name(res)
     return dbAdapter.select_stat(observatory_key, delay_key, res_key)
 
-def update_record(data_map):
+def insert_record(data_map):
     dbAdapter = runtimeConfigs["db"]
-    dbAdapter.update_geostat(data_map["id"], data_map["h"], data_map["d"], data_map["z"], data_map["f"], data_map["point_count"])
+    dbAdapter.insert_geostat(data_map)
 
 
 def convert_timedelta(duration):
@@ -172,8 +171,8 @@ runtimeConfigs = setupEnv()
 
 for obs in runtimeConfigs["observatories"]:
     start_http_session( obs )
-printTable()
-try:
-    subprocess.call(["rsync", "-avz", "-e", "ssh -i maguser.key", "statistics.html", "maguser@magweb1.cr.usgs.gov:/webinput/vhosts/magweb/htdocs/data/"])
-except FileNotFoundError as e:
-    print("Error calling rsync", e)
+#printTable()
+#try:
+#    subprocess.call(["rsync", "-avz", "-e", "ssh -i maguser.key", "statistics.html", "maguser@magweb1.cr.usgs.gov:/webinput/vhosts/magweb/htdocs/data/"])
+#except FileNotFoundError as e:
+#    print("Error calling rsync", e)

@@ -13,7 +13,7 @@ class SqliteAdapter:
 
     def init_database(self):
         cursor = self.__db_connection.cursor()
-        cursor.execute("CREATE TABLE IF NOT EXISTS GeoStats ( _id INTEGER , h INTEGER, d INTEGER, z INTEGER, f INTEGER, point_count INTEGER, timestamp NUMERIC, observatory_fk INTEGER,  res_fk INTEGER, delay_fk ,PRIMARY KEY(_id), FOREIGN KEY(observatory_fk) REFERENCES Locations(_id), FOREIGN KEY(delay_fk) REFERENCES Delays(_id), FOREIGN KEY(res_fk) REFERENCES Resolutions(_id) )")
+        cursor.execute("CREATE TABLE IF NOT EXISTS GeoStats ( _id INTEGER , h INTEGER, d INTEGER, z INTEGER, f INTEGER, timestamp NUMERIC, observatory_fk INTEGER,  res_fk INTEGER, delay_fk INTEGER,PRIMARY KEY(_id), FOREIGN KEY(observatory_fk) REFERENCES Locations(_id), FOREIGN KEY(delay_fk) REFERENCES Delays(_id), FOREIGN KEY(res_fk) REFERENCES Resolutions(_id) )")
         cursor.execute("CREATE TABLE IF NOT EXISTS Locations( _id INTEGER, observatory_name TEXT, PRIMARY KEY(_id) )" )
         cursor.execute("CREATE TABLE IF NOT EXISTS Delays ( _id INTEGER, delay INTEGER, PRIMARY KEY(_id) ) ") #### Delay is in seconds ####
         cursor.execute("CREATE TABLE IF NOT EXISTS Resolutions ( _id INTEGER, res TEXT, PRIMARY KEY (_id) )")
@@ -34,16 +34,6 @@ class SqliteAdapter:
 
             if self.find_location_id_by_name(id) == None:
                 self.insert_observatory(id)
-
-            check_stat_query = "select * from GeoStats where observatory_fk=? and delay_fk=?"
-            location_id = self.find_location_id_by_name(id)
-            for delay in self.__delays:
-                delay_id = self.find_delay_id_by_value(delay.seconds)
-                cursor.execute(check_stat_query, (location_id, delay_id,) )
-                results = cursor.fetchall()
-                if len(results ) == 0 :
-                    self.__insert_stat(location_id, delay_id, 1)
-                    self.__insert_stat(location_id, delay_id, 2)
 
     def insert_observatory(self, location):
         cursor = self.__db_connection.cursor()
@@ -75,12 +65,6 @@ class SqliteAdapter:
         point_data["point_count"] = data["point_count"]
         return point_data
 
-    def __insert_stat(self, location, delay, res):
-        cursor = self.__db_connection.cursor()
-        query = "insert into GeoStats(observatory_fk, delay_fk, h, d, z, f, point_count, res_fk) values (?, ? , 0, 0, 0, 0, 0, ?)"
-        cursor.execute( query, (location, delay, res,) )
-        self.__db_connection.commit()
-
     def find_location_id_by_name(self, name):
         cursor = self.__db_connection.cursor()
         query = "select _id from Locations where observatory_name = ?"
@@ -105,10 +89,13 @@ class SqliteAdapter:
         res_return = cursor.fetchone()
         return res_return[0]
 
-    def update_geostat(self, id, h, d, z, f, point_count):
+    def insert_geostat(self, stat):
         cursor = self.__db_connection.cursor()
-        query = "update GeoStats set h=?, d=?, z=?, f=?, point_count=? where _id=?"
-        cursor.execute(query, (h, d, z, f, point_count, id,) )
+        query = "INSERT INTO GeoStats (observatory_fk, delay_fk, res_fk, h, d, z , f, timestamp) VALUES(?,?,?,?,?,?,?,?)"
+        obs_key = self.find_delay_id_by_value(stat["obs"])
+        delay_key = self.find_delay_id_by_value(stat["delay"])
+        res_key = self.find_res_id_by_name(stat["res"])
+        cursor.execute(query, (obs_key, delay_key, res_key, stat["h"], stat["d"], stat["z"], stat["f"], stat["timestamp"],) )
         self.__db_connection.commit()
 
     def get_resolutions(self):
@@ -155,5 +142,25 @@ class SqliteAdapter:
             row_data["d"] = row["d"]
             row_data["z"] = row["z"]
             row_data["f"] = row["f"]
+            return_array.append(row_data)
+        return return_array
+
+    def get_stats_for_obs(self, delay, res, obs):
+        res_id = self.find_res_id_by_name(res)
+        obs_id = self.find_location_id_by_name(obs)
+        self.__db_connection.row_factory = sqlite3.Row
+        cursor = self.__db_connection.cursor()
+        query = "select observatory_name, delay, h, d, z, f, timestamp from GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id where delay = ? and res_fk = ? and Locations._id = ?"
+        result_set = cursor.execute(query, (delay, res_id, obs_id,))
+        return_array = []
+        rows = result_set.fetchall()
+        for row in rows:
+            row_data["obs"] = row["observatory_name"]
+            row_data["delay"] = row["delay"]
+            row_data["h"] = row["h"]
+            row_data["d"] = row["d"]
+            row_data["z"] = row["z"]
+            row_data["f"] = row["f"]
+            row_data["time"] = row["timestamp"]
             return_array.append(row_data)
         return return_array
