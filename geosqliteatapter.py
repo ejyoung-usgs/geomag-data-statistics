@@ -164,3 +164,8 @@ class SqliteAdapter:
             row_data["time"] = row["timestamp"]
             return_array.append(row_data)
         return return_array
+
+    def delete_old(self, timestamp):
+        query = "delete from GeoStats where timestamp < ?"
+        cursor = self.__db_connection.cursor()
+        cursor.execute(query, (timestamp,))

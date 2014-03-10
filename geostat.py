@@ -111,6 +111,9 @@ def convert_timedelta(duration):
     seconds = (seconds % 60)
     return days, hours, minutes, seconds
 
+#def average_observatory(observatory, delay, filter):
+   #TODO Implement 
+
 
 def printTable():
     log = open(runtimeConfigs["html_file"], "w")
@@ -168,7 +171,7 @@ def printTable():
 
 
 runtimeConfigs = setupEnv()
-
+runtimeConfigs["db"].delete_old(datetime.datetime.utcnow()-datetime.timedelta(days=30))
 for obs in runtimeConfigs["observatories"]:
     start_http_session( obs )
 #printTable()
