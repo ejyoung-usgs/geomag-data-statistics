@@ -50,21 +50,6 @@ class SqliteAdapter:
         cursor.execute("INSERT INTO Delays (delay) VALUES(?)", (delay,) )
         self.__db_connection.commit()
 
-    def select_stat(self, location, delay, res):
-        self.__db_connection.row_factory = sqlite3.Row
-        cursor = self.__db_connection.cursor()
-        result = cursor.execute("SELECT GeoStats._id, h, d, z, f, point_count FROM GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id where Locations._id = ? and Delays._id = ? and res_fk = ?", (location, delay, res,))
-        data = result.fetchone()
-        data.keys()
-        point_data = dict()
-        point_data["id"] = data["_id"]
-        point_data["h"] = data["h"]
-        point_data["d"] = data["d"]
-        point_data["z"] = data["z"]
-        point_data["f"] = data["f"]
-        point_data["point_count"] = data["point_count"]
-        return point_data
-
     def find_location_id_by_name(self, name):
         cursor = self.__db_connection.cursor()
         query = "select _id from Locations where observatory_name = ?"
@@ -108,62 +93,16 @@ class SqliteAdapter:
         else:
             return result_set
 
-    def get_all_stats(self):
+    def get_stats_for_point(self, delay, res, obs, filter, point_type):
         self.__db_connection.row_factory = sqlite3.Row
         cursor = self.__db_connection.cursor()
-        query = "select observatory_name, delay, h, d, z, f from GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id order by delay"
-        result_set = cursor.execute(query)
-        return_array = []
+        query = "select {type} from GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id INNER JOIN Resolutions on res_fk = Resolutions._id WHERE delay = ? and res = ? and Locations.observatory_name = ? and timestamp >= ?"
+        result_set = cursor.execute(query.format(type = point_type), (delay, res, obs, filter,))
         rows = result_set.fetchall()
+        result_list = []
         for row in rows:
-            row_data = dict()
-            row_data["obs"] = row["observatory_name"]
-            row_data["delay"] = row["delay"]
-            row_data["h"] = row["h"]
-            row_data["d"] = row["d"]
-            row_data["z"] = row["z"]
-            row_data["f"] = row["f"]
-            return_array.append(row_data)
-        return return_array
-
-    def get_stats_for_delay(self, delay, res):
-        res_id = self.find_res_id_by_name(res)
-        self.__db_connection.row_factory = sqlite3.Row
-        cursor = self.__db_connection.cursor()
-        query = "select observatory_name, delay, h, d, z, f from GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id where delay = ? and res_fk = ?"
-        result_set = cursor.execute(query, (delay, res_id,))
-        return_array = []
-        rows = result_set.fetchall()
-        for row in rows:
-            row_data = dict()
-            row_data["obs"] = row["observatory_name"]
-            row_data["delay"] = row["delay"]
-            row_data["h"] = row["h"]
-            row_data["d"] = row["d"]
-            row_data["z"] = row["z"]
-            row_data["f"] = row["f"]
-            return_array.append(row_data)
-        return return_array
-
-    def get_stats_for_obs(self, delay, res, obs):
-        res_id = self.find_res_id_by_name(res)
-        obs_id = self.find_location_id_by_name(obs)
-        self.__db_connection.row_factory = sqlite3.Row
-        cursor = self.__db_connection.cursor()
-        query = "select observatory_name, delay, h, d, z, f, timestamp from GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id where delay = ? and res_fk = ? and Locations._id = ?"
-        result_set = cursor.execute(query, (delay, res_id, obs_id,))
-        return_array = []
-        rows = result_set.fetchall()
-        for row in rows:
-            row_data["obs"] = row["observatory_name"]
-            row_data["delay"] = row["delay"]
-            row_data["h"] = row["h"]
-            row_data["d"] = row["d"]
-            row_data["z"] = row["z"]
-            row_data["f"] = row["f"]
-            row_data["time"] = row["timestamp"]
-            return_array.append(row_data)
-        return return_array
+            result_list.append(row[point_type])
+        return result_list
 
     def delete_old(self, timestamp):
         query = "delete from GeoStats where timestamp < ?"
