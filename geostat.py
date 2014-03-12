@@ -18,6 +18,7 @@ def setupEnv():
     configs["db"] = geosqliteatapter.SqliteAdapter("geostat.db", configs["observatories"], configs["delays"])
     configs["html_file"] = "statistics.html"
     configs["program_start"] = datetime.datetime.now()
+    configs["filters"] = [datetime.timedelta(days=30), datetime.timedelta(days = 7), datetime.timedelta(days = 1)]
     #configs["program_start"] = time.time()
     return configs
 
@@ -27,7 +28,6 @@ def start_http_session( observatory ):
     deltas = runtimeConfigs["delays"]
 
     requestString = "{url}/{observatory}/{type}/{file}"
-    #requestString.format( url = runtimeConfigs["url"], observatory = runtimeConfigs["observatory"], type = "OneMinute", file= form_file_name("frd", today_date) ) )
     url = requestString.format( url = runtimeConfigs["url"], observatory = observatory, type = "OneMinute", file = form_file_name(observatory.lower(), today_utc) )
     url_sec = requestString.format( url = runtimeConfigs["url"], observatory = observatory, type = "OneSecond", file = form_file_name_sec(observatory.lower(), today_utc) )
     try:
@@ -60,23 +60,23 @@ def process_data(data, regex, res, dtime, observatory):
         data_result = re.search(data_regex, result.group() )
         data_points = data_result.group().split()
         data_map = dict()
+
+        for point in range(len(data_points)):
+            if data_points[point] != "99999.00":
+                data_points[point] = "100"
+            else:
+                data_points[point] = "0"
+
         data_map["h"] = data_points[0]
         data_map["d"] = data_points[1]
         data_map["z"] = data_points[2]
         data_map["f"] = data_points[3]
 
-        delay_value = dtime.seconds
-        db_data = get_record(observatory, delay_value, res)
-        for key, value in data_map.items():
-            old_average = db_data[key]
-            point_count = db_data["point_count"]
-            valid = 0
-            if value != "99999.00":
-                valid = 100
-            new_average = (old_average * point_count + valid) / ( point_count + 1)
-            db_data[key] = new_average
-        db_data["point_count"] = db_data["point_count"] + 1
-        update_record(db_data)
+        data_map["delay"] = dtime.seconds
+        data_map["timestamp"] = datetime.datetime.utcnow()
+        data_map["res"] = res
+        data_map["obs"] = observatory
+        insert_record(data_map)
     
 def form_file_name(obs_str, date):
     file_template = "{obs}{year:4d}{month:02d}{day:02d}vmin.min"
@@ -93,16 +93,9 @@ def form_file_name_sec(obs_str, date):
     today_day = date.day
     return file_template.format( obs = obs_str, year = today_year, month = today_month, day = today_day )
 
-def get_record(observatory, delay, res):
+def insert_record(data_map):
     dbAdapter = runtimeConfigs["db"]
-    observatory_key = dbAdapter.find_location_id_by_name(observatory)
-    delay_key = dbAdapter.find_delay_id_by_value(delay)
-    res_key = dbAdapter.find_res_id_by_name(res)
-    return dbAdapter.select_stat(observatory_key, delay_key, res_key)
-
-def update_record(data_map):
-    dbAdapter = runtimeConfigs["db"]
-    dbAdapter.update_geostat(data_map["id"], data_map["h"], data_map["d"], data_map["z"], data_map["f"], data_map["point_count"])
+    dbAdapter.insert_geostat(data_map)
 
 
 def convert_timedelta(duration):
@@ -112,6 +105,19 @@ def convert_timedelta(duration):
     seconds = (seconds % 60)
     return days, hours, minutes, seconds
 
+def average_observatory(observatory, delay, res, filter, point_type):
+   data_set = runtimeConfigs["db"].get_stats_for_point(delay, res, observatory, filter, point_type)
+   return sum(data_set)/len(data_set)
+
+def make_data_list(res, delay, filter):
+    return_list = []
+    for obs in runtimeConfigs["observatories"]:
+        stat_h = average_observatory(obs, delay.seconds, res, datetime.datetime.utcnow()-filter, "h")
+        stat_d = average_observatory(obs, delay.seconds, res, datetime.datetime.utcnow()-filter, "d")
+        stat_z = average_observatory(obs, delay.seconds, res, datetime.datetime.utcnow()-filter, "z")
+        stat_f = average_observatory(obs, delay.seconds, res, datetime.datetime.utcnow()-filter, "f")
+        return_list.append({"obs": obs, "delay": delay.seconds, "h": stat_h, "d": stat_d, "z": stat_z, "f": stat_f, "filter": filter.days})
+    return return_list
 
 def printTable():
     log = open(runtimeConfigs["html_file"], "w")
@@ -120,12 +126,10 @@ def printTable():
     log.write(header)
     header_file.close()
     uptime =  datetime.datetime.now() - runtimeConfigs["program_start"]
-    #uptime =  time.time() - runtimeConfigs["program_start"]
-    #uptime = uptime.strftime('%H hours %M minutes %S seconds')
+
     days, hours, minutes, seconds = convert_timedelta(uptime)
     uptime2 = '{} day{}, {} hour{}, {} minute{}, {} second{}'.format(days, 's' if days != 1 else '', hours, 's' if hours != 1 else '', minutes, 's' if minutes != 1 else '', seconds, 's' if seconds != 1 else '')
 
-    dbAdapter = runtimeConfigs["db"]
     print_str = "<tr> <td>{}</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> </tr>\n"
     title_str = "<tr> <th>Observatory</th> <th>H</th> <th>D</th> <th>Z</th> <th>F</th> <th>Delay: {:2.0f} Minutes </th> </tr>\n"
     div_str = "<div class=\"delay{delay} delays {res}\">\n"
@@ -140,9 +144,9 @@ def printTable():
     log.write("</select>\n</div>\n")
     log.write("<h2> Minute Data </h2>\n")
     for d in runtimeConfigs["delays"]:
-        log.write( div_str.format(delay = int(d.seconds/60), res = "minute") )
+        log.write( div_str.format( delay = int(d.seconds/60), res = "minute") )
         log.write( "<table>\n")
-        all_stats = dbAdapter.get_stats_for_delay(d.seconds, "min")
+        all_stats = make_data_list( "min", d, datetime.timedelta(days=30) )
         log.write(title_str.format(d.seconds/60) )
         for item in all_stats:
             log.write(print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
@@ -155,7 +159,7 @@ def printTable():
     for d in runtimeConfigs["delays"]:
         log.write(div_str.format( delay = int(d.seconds/60), res = "second") )
         log.write( "<table>\n")
-        all_stats = dbAdapter.get_stats_for_delay(d.seconds, "sec")
+        all_stats = make_data_list( "sec", d, datetime.timedelta(days=30) )
         log.write(title_str.format(d.seconds/60) )
         for item in all_stats:
             log.write(print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
@@ -169,9 +173,10 @@ def printTable():
 
 
 runtimeConfigs = setupEnv()
-
+runtimeConfigs["db"].delete_old(datetime.datetime.utcnow()-datetime.timedelta(days=30))
 for obs in runtimeConfigs["observatories"]:
     start_http_session( obs )
+
 printTable()
 try:
     subprocess.call(["rsync", "-avz", "-e", "ssh -i maguser.key", "statistics.html", "maguser@magweb1.cr.usgs.gov:/webinput/vhosts/magweb/htdocs/data/"])
