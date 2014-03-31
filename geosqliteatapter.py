@@ -13,7 +13,7 @@ class SqliteAdapter:
 
     def init_database(self):
         cursor = self.__db_connection.cursor()
-        cursor.execute("CREATE TABLE IF NOT EXISTS GeoStats ( _id INTEGER , h INTEGER, d INTEGER, z INTEGER, f INTEGER, timestamp NUMERIC, observatory_fk INTEGER,  res_fk INTEGER, delay_fk INTEGER,PRIMARY KEY(_id), FOREIGN KEY(observatory_fk) REFERENCES Locations(_id), FOREIGN KEY(delay_fk) REFERENCES Delays(_id), FOREIGN KEY(res_fk) REFERENCES Resolutions(_id) )")
+        cursor.execute("CREATE TABLE IF NOT EXISTS GeoStats ( _id INTEGER , h_fail INTEGER, d_fail INTEGER, z_fail INTEGER, f_fail INTEGER, timestamp NUMERIC, point_count INTEGER, observatory_fk INTEGER,  res_fk INTEGER, delay_fk INTEGER,PRIMARY KEY(_id), FOREIGN KEY(observatory_fk) REFERENCES Locations(_id), FOREIGN KEY(delay_fk) REFERENCES Delays(_id), FOREIGN KEY(res_fk) REFERENCES Resolutions(_id) )")
         cursor.execute("CREATE TABLE IF NOT EXISTS Locations( _id INTEGER, observatory_name TEXT, PRIMARY KEY(_id) )" )
         cursor.execute("CREATE TABLE IF NOT EXISTS Delays ( _id INTEGER, delay INTEGER, PRIMARY KEY(_id) ) ") #### Delay is in seconds ####
         cursor.execute("CREATE TABLE IF NOT EXISTS Resolutions ( _id INTEGER, res TEXT, PRIMARY KEY (_id) )")
@@ -58,6 +58,7 @@ class SqliteAdapter:
         if len(location_return) == 0:
             return None
         return location_return[0][0]
+
     def find_delay_id_by_value(self, delay):
         cursor = self.__db_connection.cursor()
         query = "select _id from Delays where delay=?"
@@ -76,11 +77,21 @@ class SqliteAdapter:
 
     def insert_geostat(self, stat):
         cursor = self.__db_connection.cursor()
-        query = "INSERT INTO GeoStats (observatory_fk, delay_fk, res_fk, h, d, z , f, timestamp) VALUES(?,?,?,?,?,?,?,?)"
+
         obs_key = self.find_location_id_by_name(stat["obs"])
         delay_key = self.find_delay_id_by_value(stat["delay"])
         res_key = self.find_res_id_by_name(stat["res"])
-        cursor.execute(query, (obs_key, delay_key, res_key, stat["h"], stat["d"], stat["z"], stat["f"], stat["timestamp"],) )
+
+        check_query = "SELECT _id FROM GeoStats where observatory_fk = ? and delay_fk = ? and res_fk = ? and timestamp = ?"
+
+        check_result = cursor.execute(check_query, (obs_key, delay_key, res_fk, stat["timestamp"],))
+        if len(check_result.fetchall()) == 0:
+            query = "INSERT INTO GeoStats (observatory_fk, delay_fk, res_fk, h_fail, d_fail, z_fail, f_fail, timestamp, point_count) VALUES(?,?,?,?,?,?,?,?,?)"
+            cursor.execute(query, (obs_key, delay_key, res_key, stat["h"], stat["d"], stat["z"], stat["f"], stat["timestamp"], stat["point_count"],) )
+        else:
+            query = "UPDATE GeoStats SET h_fail = ?, d_fail = ?, z_fail = ?, f_fail = ?, point_count = ? WHERE observatory_fk = ? and delay_fk = ? and res_fk = ? and timestamp = ?"
+            cursor.execute(query, (stat["h"], stat["d"], stat["z"], stat["f"], stat["point_count"], obs_key, delay_key, res_key, stat["timestamp"],))
+
         self.__db_connection.commit()
 
     def get_resolutions(self):
