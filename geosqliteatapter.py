@@ -76,19 +76,26 @@ class SqliteAdapter:
         return res_return[0]
 
     def insert_geostat(self, stat):
+        self.__db_connection.row_factory = sqlite3.Row
         cursor = self.__db_connection.cursor()
 
         obs_key = self.find_location_id_by_name(stat["obs"])
         delay_key = self.find_delay_id_by_value(stat["delay"])
         res_key = self.find_res_id_by_name(stat["res"])
 
-        check_query = "SELECT _id FROM GeoStats where observatory_fk = ? and delay_fk = ? and res_fk = ? and timestamp = ?"
+        check_query = "SELECT h_fail, d_fail, z_fail, f_fail, point_count FROM GeoStats where observatory_fk = ? and delay_fk = ? and res_fk = ? and timestamp = ?"
 
-        check_result = cursor.execute(check_query, (obs_key, delay_key, res_fk, stat["timestamp"],))
-        if len(check_result.fetchall()) == 0:
+        check_result = cursor.execute(check_query, (obs_key, delay_key, res_key, stat["timestamp"],))
+        result_map = check_result.fetchone()
+        if result_map == None:
             query = "INSERT INTO GeoStats (observatory_fk, delay_fk, res_fk, h_fail, d_fail, z_fail, f_fail, timestamp, point_count) VALUES(?,?,?,?,?,?,?,?,?)"
-            cursor.execute(query, (obs_key, delay_key, res_key, stat["h"], stat["d"], stat["z"], stat["f"], stat["timestamp"], stat["point_count"],) )
+            cursor.execute(query, (obs_key, delay_key, res_key, stat["h"], stat["d"], stat["z"], stat["f"], stat["timestamp"], 1,) )
         else:
+            stat["point_count"] = result_map["point_count"] + 1
+            stat["h"] = int(stat["h"]) + result_map["h_fail"]
+            stat["d"] = int(stat["d"]) + result_map["d_fail"]
+            stat["z"] = int(stat["z"]) + result_map["z_fail"]
+            stat["f"] = int(stat["f"]) + result_map["f_fail"]
             query = "UPDATE GeoStats SET h_fail = ?, d_fail = ?, z_fail = ?, f_fail = ?, point_count = ? WHERE observatory_fk = ? and delay_fk = ? and res_fk = ? and timestamp = ?"
             cursor.execute(query, (stat["h"], stat["d"], stat["z"], stat["f"], stat["point_count"], obs_key, delay_key, res_key, stat["timestamp"],))
 
@@ -104,16 +111,12 @@ class SqliteAdapter:
         else:
             return result_set
 
-    def get_stats_for_point(self, delay, res, obs, filter, point_type):
+    def get_stats(self, delay, res, obs, filter):
         self.__db_connection.row_factory = sqlite3.Row
         cursor = self.__db_connection.cursor()
-        query = "select {type} from GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id INNER JOIN Resolutions on res_fk = Resolutions._id WHERE delay = ? and res = ? and Locations.observatory_name = ? and timestamp >= ?"
-        result_set = cursor.execute(query.format(type = point_type), (delay, res, obs, filter,))
-        rows = result_set.fetchall()
-        result_list = []
-        for row in rows:
-            result_list.append(row[point_type])
-        return result_list
+        query = "select h_fail, d_fail, z_fail, f_fail, point_count from GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays on delay_fk = Delays._id INNER JOIN Resolutions on res_fk = Resolutions._id WHERE delay = ? and res = ? and Locations.observatory_name = ? and timestamp >= ?"
+        result_set = cursor.execute(query, (delay, res, obs, filter))
+        return result_set.fetchall()
 
     def delete_old(self, timestamp):
         query = "delete from GeoStats where timestamp < ?"

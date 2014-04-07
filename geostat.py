@@ -12,8 +12,8 @@ def setupEnv():
     configs = dict()
 
     ## Setup all runtime configurations here ##
-    configs["observatories"] = ["BOU", "BDT", "BRW", "BSL", "CMO", "DED", "FRD", "FRN", "GUA", "HON", "NEW", "SHU", "SIT", "SJG", "TUC"]
-    configs["delays"] = [datetime.timedelta(minutes=1),datetime.timedelta(minutes=5), datetime.timedelta(minutes=6), datetime.timedelta(minutes=7), datetime.timedelta(minutes=8), datetime.timedelta(minutes=9), datetime.timedelta(minutes=10),datetime.timedelta(minutes=15)]
+    configs["observatories"] = ["BOU", "BRW", "BSL", "CMO", "DED", "FRD", "FRN", "GUA", "HON", "NEW", "SHU", "SIT", "SJG", "TUC"]
+    configs["delays"] = [datetime.timedelta(minutes=1),datetime.timedelta(minutes=5), datetime.timedelta(minutes=10),datetime.timedelta(minutes=15)]
     configs["url"] = "http://magweb.cr.usgs.gov/data/magnetometer"
     configs["db"] = geosqliteatapter.SqliteAdapter("geostat.db", configs["observatories"], configs["delays"])
     configs["html_file"] = "statistics.html"
@@ -47,6 +47,11 @@ def start_http_session( observatory ):
 
     except urllib.error.HTTPError:
         print("Error connecting to ", url)
+        for dtime in deltas:
+            data_map_m = {"h": 1, "d": 1, "z": 1, "f":1, "delay": dtime.seconds, "timestamp": datetime.date.today(), "res":"min", "obs": observatory }
+            data_map_s = {"h": 1, "d": 1, "z": 1, "f":1, "delay": dtime.seconds, "timestamp": datetime.date.today(), "res":"sec", "obs": observatory }
+            insert_record(data_map_m)
+            insert_record(data_map_s)
     except http.client.IncompleteRead:
         print("Incomplete Read, Something went wrong network side")
 
@@ -62,8 +67,8 @@ def process_data(data, regex, res, dtime, observatory):
         data_map = dict()
 
         for point in range(len(data_points)):
-            if data_points[point] != "99999.00":
-                data_points[point] = "100"
+            if data_points[point] == "99999.00":
+                data_points[point] = "1"
             else:
                 data_points[point] = "0"
 
@@ -73,7 +78,7 @@ def process_data(data, regex, res, dtime, observatory):
         data_map["f"] = data_points[3]
 
         data_map["delay"] = dtime.seconds
-        data_map["timestamp"] = datetime.datetime.utcnow()
+        data_map["timestamp"] = datetime.date.today()
         data_map["res"] = res
         data_map["obs"] = observatory
         insert_record(data_map)
@@ -105,17 +110,25 @@ def convert_timedelta(duration):
     seconds = (seconds % 60)
     return days, hours, minutes, seconds
 
-def average_observatory(observatory, delay, res, filter, point_type):
-   data_set = runtimeConfigs["db"].get_stats_for_point(delay, res, observatory, filter, point_type)
-   return sum(data_set)/len(data_set)
-
 def make_data_list(res, delay, filter):
     return_list = []
     for obs in runtimeConfigs["observatories"]:
-        stat_h = average_observatory(obs, delay.seconds, res, datetime.datetime.utcnow()-filter, "h")
-        stat_d = average_observatory(obs, delay.seconds, res, datetime.datetime.utcnow()-filter, "d")
-        stat_z = average_observatory(obs, delay.seconds, res, datetime.datetime.utcnow()-filter, "z")
-        stat_f = average_observatory(obs, delay.seconds, res, datetime.datetime.utcnow()-filter, "f")
+        data_set = runtimeConfigs["db"].get_stats(delay.seconds, res, obs, datetime.date.today()-filter)
+        sum_count = 0
+        sum_h = 0
+        sum_d = 0
+        sum_z = 0
+        sum_f = 0
+        for point in data_set:
+            sum_h = sum_h + point["h_fail"]
+            sum_d = sum_d + point["d_fail"]
+            sum_z = sum_z + point["z_fail"]
+            sum_f = sum_f + point["f_fail"]
+            sum_count = sum_count + point["point_count"]
+        stat_h = ((sum_count - sum_h)/sum_count)*100
+        stat_d = ((sum_count - sum_d)/sum_count)*100
+        stat_z = ((sum_count - sum_z)/sum_count)*100
+        stat_f = ((sum_count - sum_f)/sum_count)*100
         return_list.append({"obs": obs, "delay": delay.seconds, "h": stat_h, "d": stat_d, "z": stat_z, "f": stat_f, "filter": filter.days})
     return return_list
 
