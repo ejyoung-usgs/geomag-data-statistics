@@ -7,6 +7,7 @@ import http
 import subprocess
 
 import geosqliteatapter
+import geopsqladaptor
 
 def setupEnv():
     configs = dict()
@@ -15,7 +16,7 @@ def setupEnv():
     configs["observatories"] = ["BOU", "BRW", "BSL", "CMO", "DED", "FRD", "FRN", "GUA", "HON", "NEW", "SHU", "SIT", "SJG", "TUC"]
     configs["delays"] = [datetime.timedelta(minutes=1),datetime.timedelta(minutes=5), datetime.timedelta(minutes=10),datetime.timedelta(minutes=15)]
     configs["url"] = "http://magweb.cr.usgs.gov/data/magnetometer"
-    configs["db"] = geosqliteatapter.SqliteAdapter("geostat.db", configs["observatories"], configs["delays"])
+    configs["db"] = geopsqladaptor.PostgresAdapter("username", configs["observatories"], configs["delays"])
     configs["html_file"] = "statistics.html"
     configs["program_start"] = datetime.datetime.now()
     configs["filters"] = [datetime.timedelta(days=30), datetime.timedelta(days = 7), datetime.timedelta(days = 1)]
@@ -68,9 +69,9 @@ def process_data(data, regex, res, dtime, observatory):
 
         for point in range(len(data_points)):
             if data_points[point] == "99999.00":
-                data_points[point] = "1"
+                data_points[point] = 1
             else:
-                data_points[point] = "0"
+                data_points[point] = 0
 
         data_map["h"] = data_points[0]
         data_map["d"] = data_points[1]
