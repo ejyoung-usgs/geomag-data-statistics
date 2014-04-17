@@ -148,6 +148,7 @@ def printTable():
     title_str = "<tr> <th>Observatory</th> <th>H</th> <th>D</th> <th>Z</th> <th>F</th> <th>Delay: {:2.0f} Minutes </th> </tr>\n"
     div_str = "<div class=\"delay{delay} delays {res} filter{filter}\">\n"
     filter_str = "<p> Average for last {} days </p>\n"
+    filter_str_2 = "<p> Average for last {} day </p>\n"
 
     log.write("<div class=\"select_box\">\n<select onchange=\"showTime(this)\">\n")
     option_str = "<option value=\"{0}\">{0} Minute(s)</option>\n"
@@ -163,7 +164,10 @@ def printTable():
     for d in runtimeConfigs["delays"]:
         for f in runtimeConfigs["filters"]:
             log.write(div_str.format( delay = int(d.seconds/60), res = "second", filter = f) )
-            log.write(filter_str.format(f.days))
+            if f.days == 1:
+                log.write(filter_str_2(f.days))
+            else:
+                log.write(filter_str.format(f.days))
             log.write( "<table>\n")
             all_stats = make_data_list( "sec", d, f )
             log.write( title_str.format( d.seconds/60) )
@@ -178,7 +182,10 @@ def printTable():
         for f in runtimeConfigs["filters"]:
             log.write( div_str.format( delay = int(d.seconds/60), res = "minute", filter = f) )
             log.write( "<table>\n")
-            log.write( filter_str.format(f.days) )
+            if f.days == 1:
+                log.write(filter_str_2(f.days))
+            else:
+                log.write(filter_str.format(f.days))
             all_stats = make_data_list( "min", d, f )
             log.write(title_str.format(d.seconds/60) )
             for item in all_stats:
