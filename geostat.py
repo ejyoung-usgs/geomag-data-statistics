@@ -19,7 +19,7 @@ def setupEnv():
     configs["db"] = geopsqladaptor.PostgresAdapter("username", configs["observatories"], configs["delays"])
     configs["html_file"] = "statistics.html"
     configs["program_start"] = datetime.datetime.now()
-    configs["filters"] = [datetime.timedelta(days=30), datetime.timedelta(days = 7), datetime.timedelta(days = 1)]
+    configs["filters"] = [datetime.timedelta(days=30), datetime.timedelta(days = 7), datetime.timedelta(days = 0)]
     #configs["program_start"] = time.time()
     return configs
 
