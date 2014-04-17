@@ -146,7 +146,8 @@ def printTable():
 
     print_str = "<tr> <td>{}</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> </tr>\n"
     title_str = "<tr> <th>Observatory</th> <th>H</th> <th>D</th> <th>Z</th> <th>F</th> <th>Delay: {:2.0f} Minutes </th> </tr>\n"
-    div_str = "<div class=\"delay{delay} delays {res}\">\n"
+    div_str = "<div class=\"delay{delay} delays {res} filter{filter}\">\n"
+    filter_str = "<p> Average for last {} days </p>\n"
 
     log.write("<div class=\"select_box\">\n<select onchange=\"showTime(this)\">\n")
     option_str = "<option value=\"{0}\">{0} Minute(s)</option>\n"
@@ -160,26 +161,30 @@ def printTable():
     # This sections prints out the tables for Seconds Data
     log.write("<h2> Second Data </h2>\n")
     for d in runtimeConfigs["delays"]:
-        log.write(div_str.format( delay = int(d.seconds/60), res = "second") )
-        log.write( "<table>\n")
-        all_stats = make_data_list( "sec", d, datetime.timedelta(days=30) )
-        log.write(title_str.format(d.seconds/60) )
-        for item in all_stats:
-            log.write(print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
-        log.write("</table>\n")
-        log.write("</div>\n")
+        for f in runtimeConfigs["filters"]:
+            log.write(div_str.format( delay = int(d.seconds/60), res = "second", filter = f) )
+            log.write(filter_str.format(f.days))
+            log.write( "<table>\n")
+            all_stats = make_data_list( "sec", d, f )
+            log.write( title_str.format( d.seconds/60) )
+            for item in all_stats:
+                log.write(print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
+            log.write("</table>\n")
+            log.write("</div>\n")
 
     # This section prints out the tables for Minute Data
     log.write("<h2> Minute Data </h2>\n")
     for d in runtimeConfigs["delays"]:
-        log.write( div_str.format( delay = int(d.seconds/60), res = "minute") )
-        log.write( "<table>\n")
-        all_stats = make_data_list( "min", d, datetime.timedelta(days=30) )
-        log.write(title_str.format(d.seconds/60) )
-        for item in all_stats:
-            log.write(print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
-        log.write("</table>\n")
-        log.write("</div>\n")
+        for f in runtimeConfigs["filters"]:
+            log.write( div_str.format( delay = int(d.seconds/60), res = "minute", filter = f) )
+            log.write( "<table>\n")
+            log.write( filter_str.format(f) )
+            all_stats = make_data_list( "min", d, f )
+            log.write(title_str.format(d.seconds/60) )
+            for item in all_stats:
+                log.write(print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
+            log.write("</table>\n")
+            log.write("</div>\n")
 
     footer_file = open("foot.html")
     footer = footer_file.read()
