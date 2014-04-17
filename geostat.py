@@ -133,6 +133,26 @@ def make_data_list(res, delay, filter):
         return_list.append({"obs": obs, "delay": delay.seconds, "h": stat_h, "d": stat_d, "z": stat_z, "f": stat_f, "filter": filter.days})
     return return_list
 
+def generateContent( resolution, log ):
+    title_str = "<tr> <th>Observatory</th> <th>H</th> <th>D</th> <th>Z</th> <th>F</th> <th>Delay: {:2.0f} Minutes </th> </tr>\n"
+    div_str = "<div class=\"delay{delay} delays {res} filter{filter}\">\n"
+    filter_str = "<p> Average for last {} days </p>\n"
+    filter_str_2 = "<p> Average for today </p>\n"
+     for d in runtimeConfigs["delays"]:
+        for f in runtimeConfigs["filters"]:
+            log.write(div_str.format( delay = int(d.seconds/60), res = resolution, filter = f) )
+            if f.days == 0:
+                log.write(filter_str_2)
+            else:
+                log.write(filter_str.format(f.days))
+            log.write( "<table>\n")
+            all_stats = make_data_list( resolution, d, f )
+            log.write( title_str.format( d.seconds/60) )
+            for item in all_stats:
+                log.write(print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
+            log.write("</table>\n")
+            log.write("</div>\n")
+
 def printTable():
     log = open(runtimeConfigs["html_file"], "w")
     header_file = open("head.html")
@@ -145,10 +165,6 @@ def printTable():
     uptime2 = '{} day{}, {} hour{}, {} minute{}, {} second{}'.format(days, 's' if days != 1 else '', hours, 's' if hours != 1 else '', minutes, 's' if minutes != 1 else '', seconds, 's' if seconds != 1 else '')
 
     print_str = "<tr> <td>{}</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> </tr>\n"
-    title_str = "<tr> <th>Observatory</th> <th>H</th> <th>D</th> <th>Z</th> <th>F</th> <th>Delay: {:2.0f} Minutes </th> </tr>\n"
-    div_str = "<div class=\"delay{delay} delays {res} filter{filter}\">\n"
-    filter_str = "<p> Average for last {} days </p>\n"
-    filter_str_2 = "<p> Average for today </p>\n"
 
     log.write("<div class=\"select_box\">\n<select onchange=\"showTime(this)\">\n")
     option_str = "<option value=\"{0}\">{0} Minute(s)</option>\n"
@@ -161,38 +177,12 @@ def printTable():
 
     # This sections prints out the tables for Seconds Data
     log.write("<h2> Second Data </h2>\n")
-    for d in runtimeConfigs["delays"]:
-        for f in runtimeConfigs["filters"]:
-            log.write(div_str.format( delay = int(d.seconds/60), res = "second", filter = f) )
-            if f.days == 0:
-                log.write(filter_str_2)
-            else:
-                log.write(filter_str.format(f.days))
-            log.write( "<table>\n")
-            all_stats = make_data_list( "sec", d, f )
-            log.write( title_str.format( d.seconds/60) )
-            for item in all_stats:
-                log.write(print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
-            log.write("</table>\n")
-            log.write("</div>\n")
+    generateContent("sec", log)
 
     # This section prints out the tables for Minute Data
     log.write("<h2> Minute Data </h2>\n")
-    for d in runtimeConfigs["delays"]:
-        for f in runtimeConfigs["filters"]:
-            log.write( div_str.format( delay = int(d.seconds/60), res = "minute", filter = f) )
-            log.write( "<table>\n")
-            if f.days == 0:
-                log.write(filter_str_2)
-            else:
-                log.write(filter_str.format(f.days))
-            all_stats = make_data_list( "min", d, f )
-            log.write(title_str.format(d.seconds/60) )
-            for item in all_stats:
-                log.write(print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
-            log.write("</table>\n")
-            log.write("</div>\n")
-
+    generateContent("min", log)
+    
     footer_file = open("foot.html")
     footer = footer_file.read()
     log.write(footer)
