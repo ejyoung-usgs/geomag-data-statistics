@@ -178,7 +178,7 @@ def printTable():
         for f in runtimeConfigs["filters"]:
             log.write( div_str.format( delay = int(d.seconds/60), res = "minute", filter = f) )
             log.write( "<table>\n")
-            log.write( filter_str.format(f) )
+            log.write( filter_str.format(f.days) )
             all_stats = make_data_list( "min", d, f )
             log.write(title_str.format(d.seconds/60) )
             for item in all_stats:
