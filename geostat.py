@@ -156,6 +156,20 @@ def printTable():
         else:
             log.write(option_str.format(str(int(d.seconds/60))))
     log.write("</select>\n</div>\n")
+
+    # This sections prints out the tables for Seconds Data
+    log.write("<h2> Second Data </h2>\n")
+    for d in runtimeConfigs["delays"]:
+        log.write(div_str.format( delay = int(d.seconds/60), res = "second") )
+        log.write( "<table>\n")
+        all_stats = make_data_list( "sec", d, datetime.timedelta(days=30) )
+        log.write(title_str.format(d.seconds/60) )
+        for item in all_stats:
+            log.write(print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
+        log.write("</table>\n")
+        log.write("</div>\n")
+
+    # This section prints out the tables for Minute Data
     log.write("<h2> Minute Data </h2>\n")
     for d in runtimeConfigs["delays"]:
         log.write( div_str.format( delay = int(d.seconds/60), res = "minute") )
@@ -167,18 +181,6 @@ def printTable():
         log.write("</table>\n")
         log.write("</div>\n")
 
-    log.write("<h2> Second Data </h2>\n")
-
-
-    for d in runtimeConfigs["delays"]:
-        log.write(div_str.format( delay = int(d.seconds/60), res = "second") )
-        log.write( "<table>\n")
-        all_stats = make_data_list( "sec", d, datetime.timedelta(days=30) )
-        log.write(title_str.format(d.seconds/60) )
-        for item in all_stats:
-            log.write(print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
-        log.write("</table>\n")
-        log.write("</div>\n")
     footer_file = open("foot.html")
     footer = footer_file.read()
     log.write(footer)
