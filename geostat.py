@@ -138,6 +138,7 @@ def generateContent( resolution, log ):
     div_str = "<div class=\"delay{delay} delays {res} filter{filter}\">\n"
     filter_str = "<p> Average for last {} days </p>\n"
     filter_str_2 = "<p> Average for today </p>\n"
+    print_str = "<tr> <td>{}</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> </tr>\n"
     for d in runtimeConfigs["delays"]:
         for f in runtimeConfigs["filters"]:
             log.write(div_str.format( delay = int(d.seconds/60), res = resolution, filter = f) )
@@ -164,7 +165,6 @@ def printTable():
     days, hours, minutes, seconds = convert_timedelta(uptime)
     uptime2 = '{} day{}, {} hour{}, {} minute{}, {} second{}'.format(days, 's' if days != 1 else '', hours, 's' if hours != 1 else '', minutes, 's' if minutes != 1 else '', seconds, 's' if seconds != 1 else '')
 
-    print_str = "<tr> <td>{}</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> </tr>\n"
 
     log.write("<div class=\"select_box\">\n<select onchange=\"showTime(this)\">\n")
     option_str = "<option value=\"{0}\">{0} Minute(s)</option>\n"
