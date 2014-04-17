@@ -165,7 +165,7 @@ def printTable():
         for f in runtimeConfigs["filters"]:
             log.write(div_str.format( delay = int(d.seconds/60), res = "second", filter = f) )
             if f.days == 1:
-                log.write(filter_str_2(f.days))
+                log.write(filter_str_2.format(f.days))
             else:
                 log.write(filter_str.format(f.days))
             log.write( "<table>\n")
@@ -183,7 +183,7 @@ def printTable():
             log.write( div_str.format( delay = int(d.seconds/60), res = "minute", filter = f) )
             log.write( "<table>\n")
             if f.days == 1:
-                log.write(filter_str_2(f.days))
+                log.write(filter_str_2.format(f.days))
             else:
                 log.write(filter_str.format(f.days))
             all_stats = make_data_list( "min", d, f )
