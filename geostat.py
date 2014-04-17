@@ -141,7 +141,7 @@ def generateContent( resolution, log ):
     print_str = "<tr> <td>{}</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> </tr>\n"
     for d in runtimeConfigs["delays"]:
         for f in runtimeConfigs["filters"]:
-            log.write(div_str.format( delay = int(d.seconds/60), res = resolution, filter = f) )
+            log.write(div_str.format( delay = int(d.seconds/60), res = resolution, filter = f.days) )
             if f.days == 0:
                 log.write(filter_str_2)
             else:
