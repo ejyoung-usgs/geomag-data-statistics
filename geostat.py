@@ -138,7 +138,7 @@ def generateContent( resolution, log ):
     div_str = "<div class=\"delay{delay} delays {res} filter{filter}\">\n"
     filter_str = "<p> Average for last {} days </p>\n"
     filter_str_2 = "<p> Average for today </p>\n"
-     for d in runtimeConfigs["delays"]:
+    for d in runtimeConfigs["delays"]:
         for f in runtimeConfigs["filters"]:
             log.write(div_str.format( delay = int(d.seconds/60), res = resolution, filter = f) )
             if f.days == 0:
@@ -182,7 +182,7 @@ def printTable():
     # This section prints out the tables for Minute Data
     log.write("<h2> Minute Data </h2>\n")
     generateContent("min", log)
-    
+
     footer_file = open("foot.html")
     footer = footer_file.read()
     log.write(footer)
