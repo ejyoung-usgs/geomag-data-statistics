@@ -136,8 +136,8 @@ def make_data_list(res, delay, filter):
 def generateContent( resolution, log ):
     title_str = "<tr> <th>Observatory</th> <th>H</th> <th>D</th> <th>Z</th> <th>F</th> <th>Delay: {:2.0f} Minutes </th> </tr>\n"
     div_str = "<div class=\"delay{delay} delays {res} filter{filter}\">\n"
-    filter_str = "<p> Average for last {} days </p>\n"
-    filter_str_2 = "<p> Average for today </p>\n"
+    filter_str = "<h3> Average for last {} days </h3>\n"
+    filter_str_2 = "<h3> Average for today </h3>\n"
     print_str = "<tr> <td>{}</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> <td>{:.2f}%</td> </tr>\n"
     for d in runtimeConfigs["delays"]:
         for f in runtimeConfigs["filters"]:
