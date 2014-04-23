@@ -2,8 +2,8 @@ import postgresql
 
 class PostgresAdapter:
 
-    def __init__(self, database, observatories, delays):
-        self.__db_connection = postgresql.open(user = "username", database = "database")
+    def __init__(self, uname, database, observatories, delays):
+        self.__db_connection = postgresql.open(user = uname, database = database)
         self.__delays = delays
         self.__locations = observatories
         self.init_database()
