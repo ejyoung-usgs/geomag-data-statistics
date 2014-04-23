@@ -1,6 +1,6 @@
 import postgresql
 
-class SqliteAdapter:
+class PostgresAdapter:
 
     def __init__(self, database, observatories, delays):
         self.__db_connection = postgresql.open(user = "username", database = "database")
@@ -12,11 +12,10 @@ class SqliteAdapter:
         self.__db_connection.close()
 
     def init_database(self):
+        self.__db_connection.execute("CREATE TABLE IF NOT EXISTS Locations( _id SERIAL, observatory_name TEXT, PRIMARY KEY(_id) )" )
+        self.__db_connection.execute("CREATE TABLE IF NOT EXISTS Delays ( _id SERIAL, delay INTEGER, PRIMARY KEY(_id) ) ") #### Delay is in seconds ####
+        self.__db_connection.execute("CREATE TABLE IF NOT EXISTS Resolutions ( _id SERIAL, res TEXT, PRIMARY KEY (_id) )")
         self.__db_connection.execute("CREATE TABLE IF NOT EXISTS GeoStats ( _id SERIAL PRIMARY KEY , h_fail INTEGER, d_fail INTEGER, z_fail INTEGER, f_fail INTEGER, insert_date date, point_count INTEGER, observatory_fk INTEGER,  res_fk INTEGER, delay_fk INTEGER, FOREIGN KEY(observatory_fk) REFERENCES Locations(_id), FOREIGN KEY(delay_fk) REFERENCES Delays(_id), FOREIGN KEY(res_fk) REFERENCES Resolutions(_id) )")
-        self.__db_connection.execute("CREATE TABLE IF NOT EXISTS Locations( _id INTEGER, observatory_name TEXT, PRIMARY KEY(_id) )" )
-        self.__db_connection.execute("CREATE TABLE IF NOT EXISTS Delays ( _id INTEGER, delay INTEGER, PRIMARY KEY(_id) ) ") #### Delay is in seconds ####
-        self.__db_connection.execute("CREATE TABLE IF NOT EXISTS Resolutions ( _id INTEGER, res TEXT, PRIMARY KEY (_id) )")
-        self.__db_connection.commit();
 
         #### Setup available delays ####
         for delay in self.__delays:
@@ -39,7 +38,7 @@ class SqliteAdapter:
         statement(location)
 
     def insert_resolution(self, res):
-        statement = selt.__db_connection.prepare("INSERT INTO Resolutions (res) VALUES($1)")
+        statement = self.__db_connection.prepare("INSERT INTO Resolutions (res) VALUES($1)")
         statement(res)
 
     def insert_delay(self, delay):
@@ -55,7 +54,7 @@ class SqliteAdapter:
         return query.first(delay)
 
     def find_res_id_by_name(self, res):
-        query = self.__db_connection("SELECT _id FROM Resolutions WHERE res=$1")
+        query = self.__db_connection.prepare("SELECT _id FROM Resolutions WHERE res=$1")
         return query.first(res)
 
     def insert_geostat(self, stat):
@@ -78,14 +77,14 @@ class SqliteAdapter:
             query = self.__db_connection.prepare ("UPDATE GeoStats SET h_fail = $1, d_fail = $2, z_fail = $3, f_fail = $4, point_count = $5 WHERE observatory_fk = $6 and delay_fk = $7 and res_fk = $8 and insert_date = $9")
             query(stat["h"], stat["d"], stat["z"], stat["f"], stat["point_count"], obs_key, delay_key, res_key, stat["timestamp"])
 
-   def get_resolutions(self):
+    def get_resolutions(self):
         query = self.__db_connection.prepare("SELECT * FROM Resolutions")
-        return query()
+        return query.first()
 
     def get_stats(self, delay, res, obs, filter):
         query = self.__db_connection.prepare("SELECT h_fail, d_fail, z_fail, f_fail, point_count FROM GeoStats INNER JOIN Locations ON observatory_fk = Locations._id INNER JOIN Delays ON delay_fk = Delays._id INNER JOIN Resolutions on res_fk = Resolutions._id WHERE delay = $1 and res = $2 and Locations.observatory_name = $3 and insert_date >= $4")
         return query(delay, res, obs, filter)
 
     def delete_old(self, timestamp):
-        query = self.__db_connection.prepare("DELETE FROM GeoStats WHERE insert_date < ?")
-        query()
+        query = self.__db_connection.prepare("DELETE FROM GeoStats WHERE insert_date < $1")
+        query(timestamp)
