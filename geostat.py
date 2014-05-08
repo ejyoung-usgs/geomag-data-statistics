@@ -23,6 +23,8 @@ def setupEnv():
     #configs["program_start"] = time.time()
     return configs
 
+#### Starts the HTTP session for a given observatory and processes the downloaded data ####
+
 def start_http_session( observatory ):
 
     today_utc = datetime.datetime.utcnow()
@@ -46,6 +48,8 @@ def start_http_session( observatory ):
             process_data(geo_data, search_regex, "min", dtime, observatory)
             process_data(geo_data_s, search_regex_s, "sec", dtime, observatory)
 
+#### On Error, insert missing data point to database ####
+
     except urllib.error.HTTPError:
         print("Error connecting to ", url)
         for dtime in deltas:
@@ -55,6 +59,8 @@ def start_http_session( observatory ):
             insert_record(data_map_s)
     except http.client.IncompleteRead:
         print("Incomplete Read, Something went wrong network side")
+
+#### Processes the data fed from the HTTP session, looking for valid data ####
 
 def process_data(data, regex, res, dtime, observatory):
     result = re.search(regex, data)
@@ -83,6 +89,8 @@ def process_data(data, regex, res, dtime, observatory):
         data_map["res"] = res
         data_map["obs"] = observatory
         insert_record(data_map)
+
+#### Creates the proper filename from the observatory and date ####
     
 def form_file_name(obs_str, date):
     file_template = "{obs}{year:4d}{month:02d}{day:02d}vmin.min"
@@ -92,6 +100,8 @@ def form_file_name(obs_str, date):
 
     return file_template.format( obs = obs_str, year = today_year, month = today_month, day = today_day )
 
+#### Creates proper file nname for second data ####
+
 def form_file_name_sec(obs_str, date):
     file_template = "{obs}{year:4d}{month:02d}{day:02d}vsec.sec"
     today_year = date.year
@@ -99,10 +109,13 @@ def form_file_name_sec(obs_str, date):
     today_day = date.day
     return file_template.format( obs = obs_str, year = today_year, month = today_month, day = today_day )
 
+#### Inserts a record to the datase ####
+
 def insert_record(data_map):
     dbAdapter = runtimeConfigs["db"]
     dbAdapter.insert_geostat(data_map)
 
+#### Converts duration to time delta ####
 
 def convert_timedelta(duration):
     days, seconds = duration.days, duration.seconds
@@ -110,6 +123,8 @@ def convert_timedelta(duration):
     minutes = (seconds % 3600) // 60
     seconds = (seconds % 60)
     return days, hours, minutes, seconds
+
+#### Gets data from the database and places it into a dictionary ####
 
 def make_data_list(res, delay, filter):
     return_list = []
@@ -133,6 +148,8 @@ def make_data_list(res, delay, filter):
         return_list.append({"obs": obs, "delay": delay.seconds, "h": stat_h, "d": stat_d, "z": stat_z, "f": stat_f, "filter": filter.days})
     return return_list
 
+#### Crates HTML for the dynamic data pulled from the database ####
+
 def generateContent( resolution, log ):
     title_str = "<tr> <th>Observatory</th> <th>H</th> <th>D</th> <th>Z</th> <th>F</th> <th>Delay: {:2.0f} Minutes </th> </tr>\n"
     div_str = "<div class=\"delay{delay} delays {res} filter{filter}\">\n"
@@ -153,6 +170,8 @@ def generateContent( resolution, log ):
                 log.write(print_str.format(item["obs"], item["h"], item["d"], item["z"], item["f"]))
             log.write("</table>\n")
             log.write("</div>\n")
+
+#### Create the basic HTML file and call function to load database information ####
 
 def printTable():
     log = open(runtimeConfigs["html_file"], "w")
@@ -189,6 +208,7 @@ def printTable():
     footer_file.close()
     log.close()
 
+### Main program runs here, setup environment and start HTTP session ####
 
 runtimeConfigs = setupEnv()
 runtimeConfigs["db"].delete_old(datetime.datetime.utcnow()-datetime.timedelta(days=30))
